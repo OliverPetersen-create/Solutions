@@ -1,5 +1,4 @@
 import turtle  # this imports a library called "turtle". A library is (typically someone else's) python code, that you can use in your own program.
-import random
 
 
 def demo():  # demonstration of basic turtle commands
