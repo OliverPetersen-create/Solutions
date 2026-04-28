@@ -147,5 +147,5 @@ tom.speed(10)
 # draw_house(50, "green", "red")
 # spiral_square_pattern(52)
 # star_polygons(9)
-cool_pattern(5)
+cool_pattern(50)
 turtle.done()  # keep the turtle window open after the program is done
