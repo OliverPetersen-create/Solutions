@@ -38,16 +38,11 @@ Fortsæt derefter med den næste fil.
 
 #  Write your function below this line.
 def factorial(number):
-    result = 0
-    while number > 1:
-        if result < 1:
-            result += number * (number - 1)
-        else:
-            result = result * (number - 1)
-        number -= 1
-
+    result = 1
+    for x in range(2, number + 1):
+        result *= x
     return result
 
 
 # Here starts the main program. From the main program you can call your functions.
-print(factorial(5))
+print(factorial(6))

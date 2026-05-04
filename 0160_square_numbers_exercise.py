@@ -19,11 +19,10 @@ Fortsæt derefter med den næste fil.
 
 
 def print_squarenumbers(limit):
-    for ints in range(limit):
-        kvadrattal = ints ** 2
-        if kvadrattal >= limit:
-            break
-        print(kvadrattal)
+    current = 1
+    while current ** 2 < limit:
+        print(current ** 2)
+        current += 1
 
 
 print_squarenumbers(700)
