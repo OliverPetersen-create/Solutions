@@ -39,6 +39,7 @@ Fortsæt derefter med den næste fil.
 morris = {"turn": 0, "sleepiness": 0, "thirst": 0, "hunger": 0, "whisky": 0, "gold": 0}
 
 def run_attributes(attributes):
+	morris["turn"] += 1
 	for attribute, value in attributes.items():
 		morris[attribute] += value
 		if morris[attribute] < 0:
@@ -73,7 +74,6 @@ def morris_dead():
 
 
 while not morris_dead() and morris["turn"] < 1000:
-	morris["turn"] += 1
 	mine()
 	if morris["sleepiness"] > 90:
 		sleep()
@@ -86,6 +86,6 @@ while not morris_dead() and morris["turn"] < 1000:
 
 
 if not morris_dead():
-	print(f"Morris is happy now, since he ended with {morris["gold"]} gold.")
+	print(f"Morris is happy now, since he ended with {morris['gold']} gold.")
 else:
 	print("You killed Morris.")
