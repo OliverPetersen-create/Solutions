@@ -22,12 +22,11 @@ class Building: # Starten af Building klassen
 
     def renovate(self): # En normal method, som kalder en privat/protected method.
         print("Installing an extra bathroom...")
-        self._adjust_value(10) # <- er god
+        self._adjust_value(10)  # <- er god
 
     def _adjust_value(self, percentage): # En privat/protected method, kun kald denne method indenfor klassen
         self._value *= 1 + (percentage / 100) # Ændrer en privat/protected attribute
         print(f'Value has been adjusted by {percentage}% to {self._value:.2f}\n')
-    test = "hej"
 
 
 class Skyscraper(Building): # Arver methods (og attributes, men kun hvis de er globale indenfor klassen.) fra Building klassen

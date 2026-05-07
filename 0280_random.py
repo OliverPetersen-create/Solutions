@@ -39,3 +39,6 @@ print()
 max_number = 8
 for i in range(3):
     print(f"A random number between 0 and {max_number}: {random.random()*max_number}")
+
+for i in range(10):
+    print(random.randint(0, 1))
