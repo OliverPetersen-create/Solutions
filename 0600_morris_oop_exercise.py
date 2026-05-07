@@ -20,8 +20,11 @@ Når dit program er færdigt, skal du skubbe det til dit github-repository.
 
 class Miner:
 
-	def __init__(self):  # Jeg laver attributesne private, da det er hvad man normalt ville have gjort i Java, og så bare lave getters til dem, så gør det bare her.
+	def __init__(self):  # Jeg laver attributes private, da det er hvad man normalt ville have gjort i Java, og så bare lave getters til dem, så gør det bare her.
 		self._stats = {"turn": 0, "sleepiness": 0, "thirst": 0, "hunger": 0, "whisky": 0, "gold": 0}
+
+	def __repr__(self):
+		return f"Morris: turn: {self.get_turn()}, sleepiness: {self.get_sleepiness()}, thirst: {self.get_thirst()}, hunger: {self.get_hunger()}, whisky: {self.get_whisky()}, gold: {self.get_gold()}"
 
 	def _run_attributes(self, attributes):
 		self._stats["turn"] += 1
@@ -87,6 +90,7 @@ while not morris.dead() and morris.get_turn() < 1000:
 	if morris.get_thirst() > 95:
 		morris.buy_whisky()
 		morris.drink()
+	print(morris)
 
 if not morris.dead():
 	print(f"Morris is happy now, since he ended with {morris.get_gold()} gold.")
