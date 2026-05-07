@@ -21,37 +21,14 @@ Når dit program er færdigt, skal du skubbe det til dit github-repository.
 class Miner:
 
 	def __init__(self):  # Jeg laver attributesne private, da det er hvad man normalt ville have gjort i Java, og så bare lave getters til dem, så gør det bare her.
-		self._turn = 0
-		self._sleepiness = 0
-		self._thirst = 0
-		self._hunger = 0
-		self._whisky = 0
-		self._gold = 0
+		self._stats = {"turn": 0, "sleepiness": 0, "thirst": 0, "hunger": 0, "whisky": 0, "gold": 0}
 
 	def _run_attributes(self, attributes):
-		self._turn += 1
-		# Siden det er attributes nu, så ved jeg ikke lige om jeg bare kan loope igennem dem, så tager den længere metode.
+		self._stats["turn"] += 1
 		for attribute, value in attributes.items():
-			if attribute == "sleepiness":
-				self._sleepiness += value
-				if self._sleepiness < 0:
-					self._sleepiness = 0
-			elif attribute == "thirst":
-				self._thirst += value
-				if self._thirst < 0:
-					self._thirst = 0
-			elif attribute == "hunger":
-				self._hunger += value
-				if self._hunger < 0:
-					self._hunger = 0
-			elif attribute == "whisky":
-				self._whisky += value
-				if self._whisky < 0:
-					self._whisky = 0
-			elif attribute == "gold":
-				self._gold += value
-				if self._gold < 0:
-					self._gold = 0
+			self._stats[attribute] += value
+			if self._stats[attribute] < 0:
+				self._stats[attribute] = 0
 
 	def sleep(self):
 		attributes = {"sleepiness": -10, "thirst": 1, "hunger": 1}
@@ -66,34 +43,37 @@ class Miner:
 		self._run_attributes(attributes)
 
 	def buy_whisky(self):
-		if self._whisky > 9:
+		if self.get_whisky() > 9:
 			return
 		attributes = {"sleepiness": 5, "thirst": 1, "hunger": 1, "whisky": 1, "gold": -1}
 		self._run_attributes(attributes)
 
 	def drink(self):
-		if self._whisky < 1:
+		if self.get_whisky() < 1:
 			return
 		attributes = {"sleepiness": 5, "thirst": -15, "hunger": -1, "whisky": -1}
 		self._run_attributes(attributes)
 
 	def dead(self):
-		return self._sleepiness > 100 or self._thirst > 100 or self._hunger > 100
+		return self.get_sleepiness() > 100 or self.get_thirst() > 100 or self.get_hunger() > 100
 
 	def get_gold(self):
-		return self._gold
+		return self._stats["gold"]
 
 	def get_turn(self):
-		return self._turn
+		return self._stats["turn"]
 
 	def get_sleepiness(self):
-		return self._sleepiness
+		return self._stats["sleepiness"]
 
 	def get_hunger(self):
-		return self._hunger
+		return self._stats["hunger"]
 
 	def get_thirst(self):
-		return self._thirst
+		return self._stats["thirst"]
+
+	def get_whisky(self):
+		return self._stats["whisky"]
 
 
 morris = Miner()
