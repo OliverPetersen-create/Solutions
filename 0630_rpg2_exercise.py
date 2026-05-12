@@ -1,41 +1,37 @@
-"""Opgave: Objektorienteret rollespil, afsnit 1 :
+"""opgave: Objektorienteret rollespil, afsnit 2 :
 
-Som altid skal du læse hele opgavebeskrivelsen omhyggeligt, før du begynder at løse opgaven.
+Som altid skal du læse hele øvelsesbeskrivelsen omhyggeligt, før du begynder at løse opgaven.
 
-Kopier denne fil til din egen løsningsmappe. Skriv din løsning ind i kopien.
+Byg videre på din løsning af afsnit 1.
 
 Del 1:
-    Definer en klasse "Character" med attributterne "name", "max_health", "_current_health", "attackpower".
-    _current_health skal være en protected attribut, det er ikke meningen at den skal kunne ændres udefra i klassen.
+    Opfind to nye klasser, som arver fra klassen Character. For eksempel Hunter og Magician.
+    Dine nye klasser skal have deres egne ekstra metoder og/eller attributter.
+    Måske overskriver de også metoder eller attributter fra klassen Character.
 
 Del 2:
-    Tilføj en konstruktor (__init__), der accepterer klassens attributter som parametre.
+    Lad i hovedprogrammet objekter af dine nye klasser (dvs. rollespilfigurer) kæmpe mod hinanden,
+    indtil den ene figur er død. Udskriv, hvad der sker under kampen.
+
+I hver omgang bruger en figur en af sine evner (metoder). Derefter er det den anden figurs tur.
+Det er op til dig, hvordan dit program i hver tur beslutter, hvilken evne der skal bruges.
+Beslutningen kan f.eks. være baseret på tilfældighed eller på en smart strategi
 
 Del 3:
-    Tilføj en metode til udskrivning af klasseobjekter (__repr__).
+    Hver gang en figur bruger en af sine evner, skal du tilføje noget tilfældighed til den anvendte evne.
 
 Del 4:
-    Tilføj en metode "hit", som reducerer _current_health af en anden karakter med attackpower.
-    Eksempel: _current_health=80 og attackpower=10: et hit reducerer _current_health til 70.
-    Metoden hit må ikke ændre den private attribut _current_health i en (potentielt) fremmed klasse.
-    Definer derfor en anden metode get_hit, som reducerer _current_health for det objekt, som den tilhører, med attackpower.
+    Lad dine figurer kæmpe mod hinanden 100 gange.
+    Hold styr på resultaterne.
+    Prøv at afbalancere dine figurers evner på en sådan måde, at hver figur vinder ca. halvdelen af kampene.
 
-Del 5:
-    Tilføj en klasse "Healer", som arver fra klassen Character.
-    En healer har attackpower=0 men den har en ekstra attribut "healpower".
+Hvis du går i stå, kan du spørge google, de andre elever, en AI eller læreren.
 
-Del 6:
-    Tilføj en metode "heal" til "Healer", som fungerer som "hit" men forbedrer sundheden med healpower.
-    For at undgå at "heal" forandrer den protected attribut "_current_health" direkte,
-    tilføj en metode get_healed til klassen Character, som fungerer lige som get_hit.
-
-Hvis du er gået i stå, kan du spørge google, de andre elever, en AI eller læreren.
-Hvis du ikke aner, hvordan du skal begynde, kan du åbne 0622_rpg1_help.py og starte derfra.
-
-Når dit program er færdigt, skal du skubbe det til dit github-repository
-og sammenlign det med lærerens løsning i 0624_rpg1_solution.py
+Når dit program er færdigt, skal du skubbe det til dit github-repository.
 """
 
+
+import random
 
 class Character:
 
@@ -104,6 +100,8 @@ class Healer(Character):
 	def __init__(self, name):
 		super().__init__(name)
 		self._attackpower = 0
+		self._max_health = 50
+		self._current_health = 50
 		self._healpower = 10
 
 	def heal(self, c: Character):
@@ -116,14 +114,47 @@ class Healer(Character):
 	def get_healpower(self):
 		return self._healpower
 
+class Hunter(Character):
 
-hero1 = Character("Bozeto")
-hero2 = Character("Andananda")
-hero3 = Healer("DoctorX")
-print(hero1)
-print(hero2)
-print(hero3)
-hero1.hit(hero2)
-print(hero2)
-hero3.heal(hero2)
-print(hero2)
+	def __init__(self, name):
+		super().__init__(name)
+		self._attackpower = 15
+		self._max_health = 80
+		self._current_health = 80
+		self._arrows = 10
+		self._experience = 0
+		self._accuracy = 50
+		self._wastedturns = 0
+
+	def shoot(self, c: Character):
+		if random.random() + self.get_experience() / 100 > 0.95:
+			self._accuracy += 5
+			self._experience = 0
+		if self.get_arrows() < 1 or self.get_wasted_turns() > 0:
+			if self.get_wasted_turns() > 0:
+				return
+			else:
+				self._wastedturns = 3
+		print("\n", self.get_name(), "takes a shot at", c.get_name())
+		self._arrows -= 1
+		if random.random() < (self._accuracy / 100):
+			c.get_hit(self.get_attackpower())
+		else:
+			print("\n", self.get_name(), "missed their shot")
+			self._experience += 5
+
+	def craft_arrows(self):
+		if self.get_wasted_turns() > 0:
+			self._arrows += 3
+			self._wastedturns -= 1
+
+	def get_arrows(self):
+		return self._arrows
+
+	def get_experience(self):
+		return self._experience
+
+	def get_wasted_turns(self):
+		return self._wastedturns
+
+# class
