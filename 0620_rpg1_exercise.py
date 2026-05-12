@@ -47,9 +47,10 @@ class Character:
 		self._dead = False
 
 	def __repr__(self):
-		return f"Character is named {self._name}, has {self._max_health} max health, currently has {self._current_health} health and has {self._attackpower} attack power"
+		return f"Character is named {self.get_name()}, has {self.get_max_health()} max health, currently has {self.get_health()} health and has {self.get_attackpower()} attack power"
 
 	def hit(self, c: Character):
+		print("\n", self.get_name(), "hits", c.get_name(), "for", self.get_attackpower(), "damage")
 		c.get_hit(self.get_attackpower())
 
 	def get_hit(self, number):  # Grunden til jeg valgte stadig at lave en get_hit method, selvom jeg allerede har en damage method, er fordi siden det her er en RPG, kunne ting som fall damage være en ting, og derfor ved vi at get_hit ville være skade fra en anden spiller af.
@@ -88,6 +89,9 @@ class Character:
 	def get_attackpower(self):
 		return self._attackpower
 
+	def get_name(self):
+		return self._name
+
 	def is_dead(self):
 		return self._dead
 
@@ -99,6 +103,7 @@ class Healer(Character):
 		self._healpower = 10
 
 	def heal(self, c: Character):
+		print("\n", self.get_name(), "heals", c.get_name(), "for", self.get_healpower(), "health")
 		c.get_healed(self.get_healpower())
 
 	def set_healpower(self, number):
@@ -108,5 +113,13 @@ class Healer(Character):
 		return self._healpower
 
 
-char = Character("Uli")
-print(char)
+hero1 = Character("Bozeto")
+hero2 = Character("Andananda")
+hero3 = Healer("DoctorX")
+print(hero1)
+print(hero2)
+print(hero3)
+hero1.hit(hero2)
+print(hero2)
+hero3.heal(hero2)
+print(hero2)
