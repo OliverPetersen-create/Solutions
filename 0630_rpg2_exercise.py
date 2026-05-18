@@ -40,14 +40,19 @@ class Character:
 		self._max_health = 100
 		self._current_health = 100
 		self._attackpower = 10
+		self._critical_chance = 5
+		self._experience = 0
 		self._dead = False
 
 	def __repr__(self):
 		return f"Character is named {self.get_name()}, has {self.get_max_health()} max health, currently has {self.get_health()} health and has {self.get_attackpower()} attack power"
 
 	def hit(self, c: Character):
-		print("\n", self.get_name(), "hits", c.get_name(), "for", self.get_attackpower(), "damage")
-		c.get_hit(self.get_attackpower())
+		damage = self.get_attackpower()
+		if random.random() <= self._critical_chance / 100:
+			damage *= 1.5
+		print("\n", self.get_name(), "hits", c.get_name(), "for", damage, "damage")
+		c.get_hit(damage)
 
 	def get_hit(self, number):  # Grunden til jeg valgte stadig at lave en get_hit method, selvom jeg allerede har en damage method, er fordi siden det her er en RPG, kunne ting som fall damage være en ting, og derfor ved vi at get_hit ville være skade fra en anden spiller af.
 		self.damage(number)
@@ -57,15 +62,13 @@ class Character:
 
 	def damage(self, number):
 		self.set_health(self.get_health() - number)
-		if self.get_health() < 0:
-			self.set_health(0)
 
 	def set_health(self, number):
 		self._current_health = number
 		if self.get_health() > self.get_max_health():
 			self.set_health(self.get_max_health())
-		elif self.get_health() < 0:
-			self.set_health(0)
+		elif self.get_health() < 1:
+			self._current_health = 0
 			self.has_died()
 
 	def get_health(self):
@@ -118,43 +121,75 @@ class Hunter(Character):
 
 	def __init__(self, name):
 		super().__init__(name)
-		self._attackpower = 15
+		self._attackpower = 20
 		self._max_health = 80
 		self._current_health = 80
-		self._arrows = 10
-		self._experience = 0
+		self._critical_chance = 30
+		self._arrows = 3
 		self._accuracy = 50
-		self._wastedturns = 0
+		self._craft_arrows = False
 
 	def shoot(self, c: Character):
-		if random.random() + self.get_experience() / 100 > 0.95:
+		if self._craft_arrows:
+			print("\n", self.get_name(), "crafts 3 arrows")
+			self._arrows += 3
+			self._craft_arrows = False
+			return
+		if random.random() + self._experience / 100 > 0.95:
 			self._accuracy += 5
 			self._experience = 0
-		if self.get_arrows() < 1 or self.get_wasted_turns() > 0:
-			if self.get_wasted_turns() > 0:
-				return
-			else:
-				self._wastedturns = 3
 		print("\n", self.get_name(), "takes a shot at", c.get_name())
 		self._arrows -= 1
-		if random.random() < (self._accuracy / 100):
-			c.get_hit(self.get_attackpower())
+		if random.random() < self._accuracy / 100:
+			self.hit(c)
 		else:
 			print("\n", self.get_name(), "missed their shot")
-			self._experience += 5
+			self._experience += 10
+		if self._arrows < 1:
+			self._craft_arrows = True
 
-	def craft_arrows(self):
-		if self.get_wasted_turns() > 0:
-			self._arrows += 3
-			self._wastedturns -= 1
+class Fighter(Character):
 
-	def get_arrows(self):
-		return self._arrows
+	def __init__(self, name):
+		super().__init__(name)
+		self._attackpower = 12
+		self._critical_chance = 10
+		self._stunned = False
 
-	def get_experience(self):
-		return self._experience
+	def hit(self, c: Character):
+		if self._stunned:
+			self._stunned = False
+			return
+		if random.random() + self._experience / 100 < 0.5:
+			self._stunned = True
+			print("\n", self.get_name(), "tries to hit", c.get_name(), "but damaged their arm, they're stunned for 1 turn")
+			return
+		self._experience += 10
+		if random.random() - self._experience / 1000 < 0.1:
+			print("\n", self.get_name(), "double hits", c.get_name(), "for", self.get_attackpower() * 2, "damage")
+			c.get_hit(self.get_attackpower() * 2)
+		else:
+			print("\n", self.get_name(), "hits", c.get_name(), "for", self.get_attackpower(), "damage")
+			c.get_hit(self.get_attackpower())
 
-	def get_wasted_turns(self):
-		return self._wastedturns
 
-# class
+winsForHunter = 0
+winsForFighter = 0
+for loop in range(100):  # Kunne kun komme op med 1 evne for hver...
+	hunter = Hunter("James")
+	fighter = Fighter("Thomas")
+	whoGoesNext = hunter
+	while not hunter.is_dead() and not fighter.is_dead():
+		if whoGoesNext == hunter:
+			hunter.shoot(fighter)
+			whoGoesNext = fighter
+		else:
+			fighter.hit(hunter)
+			whoGoesNext = hunter
+	if hunter.is_dead():
+		print("\n", "Last man standing is the Fighter")
+		winsForFighter += 1
+	else:
+		print("\n", "Last man standing is the Hunter")
+		winsForHunter += 1
+print("\n", f"100 loops are over, the results are {winsForHunter} wins for the Hunter and {winsForFighter} wins for the Fighter.")

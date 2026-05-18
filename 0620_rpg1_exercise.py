@@ -61,15 +61,13 @@ class Character:
 
 	def damage(self, number):
 		self.set_health(self.get_health() - number)
-		if self.get_health() < 0:
-			self.set_health(0)
 
 	def set_health(self, number):
 		self._current_health = number
 		if self.get_health() > self.get_max_health():
 			self.set_health(self.get_max_health())
-		elif self.get_health() < 0:
-			self.set_health(0)
+		elif self.get_health() < 1:
+			self._current_health = 0
 			self.has_died()
 
 	def get_health(self):
