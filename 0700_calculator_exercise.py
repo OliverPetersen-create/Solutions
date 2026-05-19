@@ -26,8 +26,7 @@ Hvis du går i stå, spørg Google, andre elever, en AI eller læreren.
 Når dit program er færdigt, skub det til dit GitHub-repository.
 """
 
-first_number = False
-current_number = 0
+
 while True:
 	print("- Skriv en af de følgende tal for at bruge operationen -")
 	print()
@@ -37,18 +36,39 @@ while True:
 	print("4. Division")
 	print("5. Afslut")
 	print()
-	if first_number:
-		print(f"Nuværende kalkulation: {current_number}")
-		print()
 	try:
 		user_input = int(input())
-		num1 = 0
-		num2 = 0
 		print()
-		print(f"Du valgte {'option 1. Addition' if user_input == 1 else '' if '' else ''}")
+		match user_input:
+			case 1:
+				print("Du valgte option 1. Addition")
+			case 2:
+				print("Du valgte option 2. Subtraktion")
+			case 3:
+				print("Du valgte option 3. Multiplikation")
+			case 4:
+				print("Du valgte option 4. Division")
+			case 5:
+				print("Du valgte option 5. Afslut")
+				print("Afslutter nu.")
+				break
+			case _:
+				print("Vælg en option mellem 1-5.")
+				print()
+				continue
+		num1 = float(input("Hvad er dit første tal du vil bruge med operatoren? "))
+		num2 = float(input("Hvad er dit andet tal du vil bruge med operatoren? "))
+		match user_input:
+			case 1:
+				result = num1 + num2
+			case 2:
+				result = num1 - num2
+			case 3:
+				result = num1 * num2
+			case 4:
+				result = num1 / num2
+		print(f"\nDit resultat er {result}")
 		print()
-		user_input = float(input("Hvad er det før"))
-
 	except ValueError:
-		print("Vær sød at undgå at skrive nogen bogstaver.")
+		print("Vær sød at undgå at skrive nogen bogstaver eller symboler.")
 		print()
