@@ -28,7 +28,7 @@ import random
 print("Programmet vil genere et 4-cifret tal, tag et gæt på hvad det kan være.")
 print("Hvis du gætter et tal korrekt i dens rigtige position, får du 1 sort mønt.")
 print("Hvis du gætter et tal korrekt i dens forkerte position, får du 1 hvid mønt.")
-print("Du får af hvide hvor mange af hver mønt du har hvert gæt.")
+print("Du får af vide hvor mange af hver mønt du har hvert gæt.")
 print("Gæt tallet i så få gæt så muligt, held og lykke.")
 print()
 guesses = 0
@@ -40,6 +40,9 @@ while True:
 	white_coins = 0
 	try:
 		guess = input("Hvad tror du tallet er? ")
+		if guess == "/cheat":
+			print(f"Tallet er {correct_number}, snydepels.")
+			continue
 		if len(guess) < 4 or len(guess) > 4:
 			print("Du skal gætte på et 4-cifret tal!")
 			print()

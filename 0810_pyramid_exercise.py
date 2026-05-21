@@ -39,29 +39,25 @@ Når dit program er færdigt, skal du skubbe det til dit github-repository.
 """
 
 
-def list_builder(number_list, index, number):
-	new_list = []
-	index = 0
-	:
-		if list_index == index:
-			new_list.append(number)
-			continue
-		new_list.append(number_list[index])
-	return new_list
-def pyramid(lines):
-	numbers = [1, 1]
-	next_list = []
+def pyramid(lines, firstline=None):
+	if firstline is None:
+		firstline = [1, 1]
+	numbers = firstline
 	current = 2
 	for _ in range(lines):
-		for index in range(len(numbers)):
-			print(f"{numbers[index]}", end=" ")
-			if index + 1 >= len(numbers):
-				break
-			if numbers[index] + numbers[index + 1] == current:
-				next_list = list_builder(numbers, index + 1, current)
-		print()
+		next_list = []
+		for i in range(len(numbers)):
+			print(numbers[i], end=" ")
+			if i < 1:
+				next_list.append(numbers[i])
+				continue
+			if numbers[i - 1] + numbers[i] == current:
+				next_list.append(current)
+			next_list.append(numbers[i])
 		numbers = next_list
 		current += 1
+		print()
 
 
-pyramid(3)
+pyramid(6)
+pyramid(10, [1, 3, 2])
