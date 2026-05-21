@@ -125,6 +125,7 @@ class Hunter(Character):
 		self._max_health = 80
 		self._current_health = 80
 		self._critical_chance = 30
+		self._accuracy_increase_chance = 5
 		self._arrows = 3
 		self._accuracy = 50
 		self._craft_arrows = False
@@ -135,7 +136,7 @@ class Hunter(Character):
 			self._arrows += 3
 			self._craft_arrows = False
 			return
-		if random.random() + self._experience / 100 > 0.95:
+		if random.random() + self._experience / 100 < self._accuracy_increase_chance / 100:
 			self._accuracy += 5
 			self._experience = 0
 		print("\n", self.get_name(), "takes a shot at", c.get_name())
