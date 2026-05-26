@@ -50,8 +50,7 @@ Fortsæt derefter med den næste fil.
 
 #  Write your functions below this line.
 def print_repeatedly(string, repetitions):
-    for _ in range(repetitions):
-        print(string, end="")
+    print(string * repetitions, end="")
 
 def print_pattern(string, repetition_list):
     for repetition in repetition_list:

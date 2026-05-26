@@ -156,17 +156,19 @@ class Fighter(Character):
 		self._attackpower = 12
 		self._critical_chance = 10
 		self._stunned = False
+		self._damage_arm_chance = 50
+		self._double_hit_chance = 10
 
 	def hit(self, c: Character):
 		if self._stunned:
 			self._stunned = False
 			return
-		if random.random() + self._experience / 100 < 0.5:
+		if random.random() + self._experience / 100 < self._damage_arm_chance / 100:
 			self._stunned = True
 			print("\n", self.get_name(), "tries to hit", c.get_name(), "but damaged their arm, they're stunned for 1 turn")
 			return
 		self._experience += 10
-		if random.random() - self._experience / 1000 < 0.1:
+		if random.random() - self._experience / 1000 < self._double_hit_chance / 100:
 			print("\n", self.get_name(), "double hits", c.get_name(), "for", self.get_attackpower() * 2, "damage")
 			c.get_hit(self.get_attackpower() * 2)
 		else:
