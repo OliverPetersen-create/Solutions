@@ -36,7 +36,7 @@ def create_data(tree):
 	if entry_id.get() == "" or entry_weight.get() == "" or entry_destination.get() == "":
 		return
 	data.append((entry_id.get(), entry_weight.get(), entry_destination.get()))
-	if len(data) % 2 == 0:
+	if (len(data) - 1) % 2 == 0:
 		tree.insert(parent='', index='end', text='', values=data[-1], tags='evenrow')
 	else:
 		tree.insert(parent='', index='end', text='', values=data[-1], tags='oddrow')
