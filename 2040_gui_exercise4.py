@@ -33,11 +33,7 @@ def clear_entries():
 	entry_weather.delete(0, tk.END)
 
 def create_data(tree):
-	if entry_id.get() == "":
-		return
-	if entry_weight.get() == "":
-		return
-	if entry_destination.get() == "":
+	if entry_id.get() == "" or entry_weight.get() == "" or entry_destination.get() == "":
 		return
 	data.append((entry_id.get(), entry_weight.get(), entry_destination.get()))
 	if len(data) % 2 == 0:
