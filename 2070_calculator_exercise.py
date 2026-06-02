@@ -40,7 +40,7 @@ class Calculator:
 		self.button_frame.grid_propagate(False)
 		self.button_frame.grid(row=1, column=0)
 
-		self.button_1 = Button(self.button_frame, self.button_color, self.button_color, "Test", 5, 5)
+		self.button_1 = Button(self.button_frame, self.button_color, self.button_color, "Test", 5, 6)
 
 	def set_result(self, number):
 		new_size = (30 - (len(str(number)) - 15) * 2) if len(str(number)) > 15 else 30
