@@ -127,7 +127,7 @@ class Calculator:
 					if self.number[current_num] is None or len_number[current_num] < 2:
 						self.number[current_num] = 0
 					if len_number[current_num] > 1:
-						self.number[current_num] = float(str_number[current_num][:-1])
+						self.number[current_num] = float(str_number[current_num][:-1] if str_number[current_num][:-1] != "-" else "0")
 					self.set_result(self.number[current_num])
 					if self.number[0].is_integer():
 						self.number[0] = int(self.number[0])
