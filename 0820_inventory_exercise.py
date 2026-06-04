@@ -33,24 +33,22 @@ Når dit program er færdigt, skal du skubbe det til dit github-repository.
 
 
 def inventory(lines):
-	current_inventory = []
+	numbers = {}
 	for i in range(lines):
 		current = 0
 		while True:
-			amount_of = count_numbers(current_inventory, current)
-			current_inventory.append(amount_of)
+			if current not in numbers:
+				numbers[current] = 0
+			amount_of = numbers[current]
 			print(f"{amount_of}", end=" ")
+			if amount_of not in numbers:
+				numbers[amount_of] = 1
+			else:
+				numbers[amount_of] += 1
 			if amount_of == 0:
 				break
 			current += 1
 		print()
 
-def count_numbers(inv, number):
-	count = 0
-	for numbers in inv:
-		if numbers == number:
-			count += 1
-	return count
 
-
-inventory(12)
+inventory(300)
