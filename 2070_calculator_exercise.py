@@ -180,7 +180,7 @@ class Calculator:
 					self.number[current_num] *= -1
 					self.set_result(self.number[current_num])
 				case 18:
-					if not self.number[current_num].is_integer():
+					if "." in str_number[current_num]:
 						return
 					self.number[current_num] = str_number[current_num] + "."
 					self.comma = True
