@@ -17,7 +17,7 @@ Når dit program er færdigt, skal du skubbe det til dit github-repository.
 Fortsæt derefter med den næste fil.
 """
 
-ignore_letters = ['a', 'e', 'i', 'o', 'u', 'y']
+ignore_letters = "aeiouy"
 
 def spell_consonants(text, letter_limit):
     """

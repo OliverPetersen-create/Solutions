@@ -40,7 +40,7 @@ from sqlalchemy.orm import declarative_base, Session
 from sqlalchemy import Column, String, Integer
 from sqlalchemy import create_engine, select
 
-Database = "sqlite:////2311_my_second_sql_database.db"
+Database = "sqlite:///2311_my_second_sql_database.db"
 Base = declarative_base()
 
 class Customer(Base):
@@ -50,7 +50,7 @@ class Customer(Base):
 	address = Column(String)
 	age = Column(Integer)
 
-	def __repr(self):
+	def __repr__(self):
 		return f"Customer({self.id=}   {self.name=}   {self.address=}   {self.age=})"
 
 class Product(Base):
@@ -60,7 +60,7 @@ class Product(Base):
 	price = Column(Integer)
 	brand = Column(String)
 
-	def __repr(self):
+	def __repr__(self):
 		return f"Product({self.id=}   {self.product_number=}   {self.price=}   {self.brand=})"
 
 def create_test_data():
@@ -92,10 +92,10 @@ def get_record(table, record_id):
 engine = create_engine(Database, echo=False, future=True)
 Base.metadata.create_all(engine)
 
-create_test_data()
+# create_test_data()
 print(f"Product #1: {get_record(Product, 1)}")
 print(f"Customer #1: {get_record(Customer, 1)}")
-for products in select(Product):
+for products in select_all(Product):
 	print(f"Products: {products}")
-for customers in select(Customer):
-	print(f"Products: {customers}")
+for customers in select_all(Customer):
+	print(f"Customers: {customers}")
