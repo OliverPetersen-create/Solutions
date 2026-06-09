@@ -1,17 +1,17 @@
 from sqlalchemy.orm import declarative_base
-from sqlalchemy import Column
+from sqlalchemy import Column, ForeignKey
 from sqlalchemy import String, DateTime, Integer
 
 Base = declarative_base()
 
-class Kunder(Base):
+class Kunde(Base):
 	__tablename__ = "kunder"
-	id = Column(Integer, primary_key=True)  # Ved godt denne her ikke stod i opgaven, men vidste ikke lige hvordan kundeid i bookinger skulle fungerer uden denne her, siden flere personer kan have det samme efternavn
+	id = Column(Integer, primary_key=True)
 	efternavn = Column(String)
 	kontakt = Column(String)
 
 	def __repr__(self):
-		return f"Kunder({self.id=}    {self.efternavn=}    {self.kontakt=})"
+		return f"Kunde({self.id=}    {self.efternavn=}    {self.kontakt=})"
 
 	def convert_to_tuple(self):
 		return self.id, self.efternavn, self.kontakt
@@ -19,15 +19,15 @@ class Kunder(Base):
 	def valid(self):
 		return self.efternavn == "$deleted"
 
-class Rejser(Base):
+class Rejse(Base):
 	__tablename__ = "rejser"
-	id = Column(Integer, primary_key=True)  # Ved godt denne her ikke stod i opgaven, men vidste ikke lige hvordan rejseid i bookinger skulle fungerer uden denne her, siden flere busser kan have den samme rute, dato osv (Tror jeg da... har ikke taget bus før).
+	id = Column(Integer, primary_key=True)
 	rute = Column(String)
 	dato = Column(DateTime)
 	pladskapacitet = Column(Integer)
 
 	def __repr__(self):
-		return f"Rejser({self.id=}    {self.rute=}    {self.dato=}    {self.pladskapacitet=})"
+		return f"Rejse({self.id=}    {self.rute=}    {self.dato=}    {self.pladskapacitet=})"
 
 	def convert_to_tuple(self):
 		return self.id, self.rute, self.dato, self.pladskapacitet
@@ -35,14 +35,15 @@ class Rejser(Base):
 	def valid(self):
 		return self.rute == "$deleted"
 
-class Bookinger(Base):
+class Booking(Base):
 	__tablename__ = "bookinger"
 	id = Column(Integer, primary_key=True)
-	rejseid = Column(Integer, primary_key=True)
+	kundeid = Column(Integer, ForeignKey("kunder.id"), nullable=False)
+	rejseid = Column(Integer, ForeignKey("rejser.id"), nullable=False)
 	pladser = Column(Integer)
 
 	def __repr__(self):
-		return f"Bookinger({self.id=}    {self.rejseid=}    {self.pladser=})"
+		return f"Booking({self.id=}    {self.rejseid=}    {self.pladser=})"
 
 	def convert_to_tuple(self):
 		return self.id, self.rejseid, self.pladser

@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, select
 
-from data import Base
+from plusbus_data import Base, Kunde
 
-Database = "sqlite:///database.db"
+Database = 'sqlite:///plusbus_database.db'
 
 def select_all(table):
 	with Session(engine) as session:
@@ -13,30 +13,32 @@ def select_all(table):
 			result.append(record)
 	return result
 
+def create_test_data():
+	with Session(engine) as session:
+		test_data = []
+		test_data.append(Kunde(efternavn="Petersen(Mig selv ja)", kontakt="Tlf. 27813897"))
+		test_data.append(Kunde(efternavn="Hej", kontakt="test@gmail.com"))
+		session.add_all(test_data)
+		session.commit()
+
+def insert_data(data):
+	with Session(engine) as session:
+		session.add(data)
+		session.commit()
+
 def get_record(table, id_):
 	with Session(engine) as session:
 		record = session.scalars(select(table).where(table.id == id_)).first()
 	return record
 
-# def get_kunde(kunde: Kunder, id_):
-# 	with Session(engine) as session:
-# 		record = session.scalars(select(kunde).where(kunde.id == id_)).first()
-# 	return record
-#
-# def get_rejse(rejse: Rejser, id_):
-# 	with Session(engine) as session:
-# 		record = session.scalars(select(rejse).where(rejse.id == id_)).first()
-# 	return record
-#
-# def get_booking(booking: Bookinger, kunde_id):
-# 	with Session(engine) as session:
-# 		record = session.scalars(select(booking).where(booking.kundeid == kunde_id)).first()
-# 	return record
-
 
 if __name__ == "__main__":
 	engine = create_engine(Database, echo=False, future=True)
 	Base.metadata.create_all(engine)
+	# create_test_data()
+	# insert_data(Kunde(efternavn="Lol", kontakt="Ingen"))
+	print(f"#1: {get_record(Kunde, 1)}")
+	print(select_all(Kunde))
 else:
 	engine = create_engine(Database, echo=False, future=True)
 	Base.metadata.create_all(engine)
