@@ -9,12 +9,13 @@ class Kunde(Base):
 	id = Column(Integer, primary_key=True)
 	efternavn = Column(String)
 	kontakt = Column(String)
+	auth = Column(Integer)
 
 	def __repr__(self):
-		return f"Kunde({self.id=}    {self.efternavn=}    {self.kontakt=})"
+		return f"Kunde({self.id=}    {self.efternavn=}    {self.kontakt=}    {self.auth=})"
 
 	def convert_to_tuple(self):
-		return self.id, self.efternavn, self.kontakt
+		return self.id, self.efternavn, self.kontakt, self.auth
 
 	def valid(self):
 		return self.efternavn == "$deleted"

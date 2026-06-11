@@ -37,8 +37,11 @@ if __name__ == "__main__":
 	Base.metadata.create_all(engine)
 	# create_test_data()
 	# insert_data(Kunde(efternavn="Lol", kontakt="Ingen"))
-	print(f"#1: {get_record(Kunde, 1)}")
-	print(select_all(Kunde))
+	if get_record(Kunde, 1) is None:
+		print("Kunden findes ikke")
+	else:
+		print(f"#1: {get_record(Kunde, 1)}")
+		print(select_all(Kunde))
 else:
 	engine = create_engine(Database, echo=False, future=True)
 	Base.metadata.create_all(engine)
