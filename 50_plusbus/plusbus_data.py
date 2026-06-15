@@ -1,6 +1,6 @@
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, ForeignKey
-from sqlalchemy import String, DateTime, Integer
+from sqlalchemy import String, Integer
 
 Base = declarative_base()
 
@@ -18,13 +18,13 @@ class Kunde(Base):
 		return self.id, self.efternavn, self.kontakt, self.auth
 
 	def valid(self):
-		return self.efternavn == "$deleted"
+		return not self.efternavn == "$deleted"
 
 class Rejse(Base):
 	__tablename__ = "rejser"
 	id = Column(Integer, primary_key=True)
 	rute = Column(String)
-	dato = Column(DateTime)
+	dato = Column(String)
 	pladskapacitet = Column(Integer)
 
 	def __repr__(self):
@@ -34,7 +34,7 @@ class Rejse(Base):
 		return self.id, self.rute, self.dato, self.pladskapacitet
 
 	def valid(self):
-		return self.rute == "$deleted"
+		return not self.rute == "$deleted"
 
 class Booking(Base):
 	__tablename__ = "bookinger"
@@ -55,3 +55,7 @@ class Booking(Base):
 		except ValueError:
 			return False
 		return value >= 0
+
+class PermissionLevel:
+	LOW = 0
+	HIGH = 1

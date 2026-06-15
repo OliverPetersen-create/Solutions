@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, update
 
-from plusbus_data import Base, Kunde
+from plusbus_data import Base, Kunde,Booking, Rejse, PermissionLevel
 
 Database = 'sqlite:///plusbus_database.db'
 
@@ -12,6 +12,14 @@ def select_all(table):
 		for record in records:
 			result.append(record)
 	return result
+
+def get_all_bookinger(kundeid):
+	with Session(engine) as session:
+		records = session.scalars(select(Booking).where(Booking.kundeid == kundeid)).all()
+		# result = []
+		# for record in records:
+		# 	result.append(record)
+	return records
 
 def create_test_data():
 	with Session(engine) as session:
@@ -24,6 +32,14 @@ def create_test_data():
 def insert_data(data):
 	with Session(engine) as session:
 		session.add(data)
+		session.flush()
+		id_ = data.id
+		session.commit()
+	return id_
+
+def soft_delete_rejse(rejse):
+	with Session(engine) as session:
+		session.execute(update(Rejse).where(Rejse.id == rejse.id).values(rute="$deleted"))
 		session.commit()
 
 def get_record(table, id_):
@@ -45,3 +61,5 @@ if __name__ == "__main__":
 else:
 	engine = create_engine(Database, echo=False, future=True)
 	Base.metadata.create_all(engine)
+	if get_record(Kunde, 1) is None:
+		insert_data(Kunde(efternavn="@admin", kontakt="", auth=PermissionLevel.HIGH))
