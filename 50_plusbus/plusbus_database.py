@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, select, update
 
-from plusbus_data import Base, Kunde,Booking, Rejse, PermissionLevel
+from plusbus_data import Base, Kunde, Booking, Rejse, PermissionLevel
 
 Database = 'sqlite:///plusbus_database.db'
 
@@ -21,6 +21,11 @@ def get_all_bookinger(kundeid):
 		# 	result.append(record)
 	return records
 
+def get_all_rejse_bookinger(rejseid):
+	with Session(engine) as session:
+		records = session.scalars(select(Booking).where(Booking.rejseid == rejseid)).all()
+	return records
+
 def create_test_data():
 	with Session(engine) as session:
 		test_data = []
@@ -37,9 +42,14 @@ def insert_data(data):
 		session.commit()
 	return id_
 
+def soft_delete_booking(booking):
+	with Session(engine) as session:
+		session.execute(update(Booking).where(Booking.id == booking.id).values(pladser=-1))
+		session.commit()
+
 def soft_delete_rejse(rejse):
 	with Session(engine) as session:
-		session.execute(update(Rejse).where(Rejse.id == rejse.id).values(rute="$deleted"))
+		session.execute(update(Rejse).where(Rejse.id == rejse.id).values(pladskapacitet=-1))
 		session.commit()
 
 def get_record(table, id_):

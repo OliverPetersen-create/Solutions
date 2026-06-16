@@ -34,7 +34,11 @@ class Rejse(Base):
 		return self.id, self.rute, self.dato, self.pladskapacitet
 
 	def valid(self):
-		return not self.rute == "$deleted"
+		try:
+			value = int(self.pladskapacitet)
+		except ValueError:
+			return False
+		return value >= 0
 
 class Booking(Base):
 	__tablename__ = "bookinger"
@@ -44,14 +48,14 @@ class Booking(Base):
 	pladser = Column(Integer)
 
 	def __repr__(self):
-		return f"Booking({self.id=}    {self.rejseid=}    {self.pladser=})"
+		return f"Booking({self.id=}    {self.rejseid=}    {self.kundeid=}    {self.pladser=})"
 
 	def convert_to_tuple(self):
-		return self.id, self.rejseid, self.pladser
+		return self.id, self.rejseid, self.kundeid, self.pladser
 
 	def valid(self):
 		try:
-			value = int(self.rejseid)
+			value = int(self.pladser)
 		except ValueError:
 			return False
 		return value >= 0

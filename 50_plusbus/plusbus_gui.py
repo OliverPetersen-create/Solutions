@@ -193,7 +193,7 @@ class Plusbus:
 
 		self.admin_opret_rejse_button = tk.Button(self.admin_button_frame, text="Opret rejse", relief="flat", bg=self.secondary_bg_color, fg=self.text_color,
 		                                          activebackground=self.button_press_color, font=("Arial", 20), command=self.opret_rejse)
-		self.admin_opret_rejse_button.grid(row=0, column=2, padx=(0, 30))
+		self.admin_opret_rejse_button.grid(row=0, column=2)
 
 		self.acc_create_label_frame_label_error = tk.Label(self.admin_frame, text="", bg=self.gui_background_color, fg=self.error_color, font=("Arial", 30))
 		self.acc_create_label_frame_label_error.grid(row=4, column=0, pady=(30, 0))
@@ -234,7 +234,7 @@ class Plusbus:
 		self.kunde_frame_treeview_rejse_treeview.tag_configure("evenrow", background=self.evenrow_background, foreground=self.text_color)
 		self.kunde_frame_treeview_rejse_treeview.tag_configure("oddrow", background=self.oddrow_background, foreground=self.text_color)
 
-		self.kunde_frame_treeview_rejse_treeview.bind("<ButtonRelease-1>", lambda event: self.select_id(self.kunde_frame_treeview_rejse_treeview, "rejseid"))
+		self.kunde_frame_treeview_rejse_treeview.bind("<ButtonRelease-1>", lambda event: self.select_id(self.kunde_frame_treeview_rejse_treeview, "bookrejse"))
 
 		# Bookinger treeview
 
@@ -250,37 +250,159 @@ class Plusbus:
 		self.kunde_frame_treeview_bookinger_treeview.grid(row=1, column=1, pady=(30, 0))
 		self.kunde_frame_treeview_bookinger_scrollbar.config(command=self.kunde_frame_treeview_bookinger_treeview.yview)
 
-		self.kunde_frame_treeview_bookinger_treeview['columns'] = ("id", "rejseid", "pladser")
+		self.kunde_frame_treeview_bookinger_treeview['columns'] = ("id", "rute", "dato", "pladser")
 		self.kunde_frame_treeview_bookinger_treeview.column("#0", width=0, stretch=tk.NO)
 		self.kunde_frame_treeview_bookinger_treeview.column("id", width=50, anchor="w")
-		self.kunde_frame_treeview_bookinger_treeview.column("rejseid", width=100, anchor="w")
-		self.kunde_frame_treeview_bookinger_treeview.column("pladser", width=100, anchor="w")
+		self.kunde_frame_treeview_bookinger_treeview.column("rute", width=125, anchor="w")
+		self.kunde_frame_treeview_bookinger_treeview.column("dato", width=125, anchor="w")
+		self.kunde_frame_treeview_bookinger_treeview.column("pladser", width=150, anchor="w")
 
 		self.kunde_frame_treeview_bookinger_treeview.heading("#0", text="", anchor="w")
 		self.kunde_frame_treeview_bookinger_treeview.heading("id", text="Id", anchor="center")
-		self.kunde_frame_treeview_bookinger_treeview.heading("rejseid", text="Rejseid", anchor="center")
-		self.kunde_frame_treeview_bookinger_treeview.heading("pladser", text="Pladser", anchor="center")
+		self.kunde_frame_treeview_bookinger_treeview.heading("rute", text="Rute", anchor="center")
+		self.kunde_frame_treeview_bookinger_treeview.heading("dato", text="Dato", anchor="center")
+		self.kunde_frame_treeview_bookinger_treeview.heading("pladser", text="Pladser booket", anchor="center")
 
 		self.kunde_frame_treeview_bookinger_treeview.tag_configure("evenrow", background=self.evenrow_background, foreground=self.text_color)
 		self.kunde_frame_treeview_bookinger_treeview.tag_configure("oddrow", background=self.oddrow_background, foreground=self.text_color)
 
-		self.kunde_frame_treeview_bookinger_treeview.bind("<ButtonRelease-1>", lambda event: self.select_id(self.kunde_frame_treeview_rejse_treeview, "rejseid"))
+		self.kunde_frame_treeview_bookinger_treeview.bind("<ButtonRelease-1>", lambda event: self.select_id(self.kunde_frame_treeview_bookinger_treeview, "bookingid"))
 
 		self.kunde_frame_buttons = tk.Frame(self.kunde_frame, bg=self.gui_background_color)
-		self.kunde_frame_buttons.grid(row=1, column=0)
+		self.kunde_frame_buttons.grid(row=1, column=0, pady=(30, 0))
 
 		self.kunde_frame_back_button = tk.Button(self.kunde_frame_buttons, text="Annuller", relief="flat", bg=self.secondary_bg_color, fg=self.text_color,
 		                                         activebackground=self.button_press_color, font=("Arial", 20), command=lambda: self.change_window(self.acc_frame))
-		self.kunde_frame_back_button.grid(row=1, column=0, pady=(30, 0), padx=(0, 30))
+		self.kunde_frame_back_button.grid(row=1, column=0, padx=(0, 30))
 
-		self.kunde_frame_book_rejse_button = tk.Button(self.kunde_frame_buttons, text="Annuller", relief="flat", bg=self.secondary_bg_color, fg=self.text_color,
-		                                         activebackground=self.button_press_color, font=("Arial", 20), command=lambda: self.change_window(self.acc_frame))
-		self.kunde_frame_book_rejse_button.grid(row=1, column=1, pady=(30, 0))
+		self.kunde_frame_book_rejse_button = tk.Button(self.kunde_frame_buttons, text="Book rejse", relief="flat", bg=self.secondary_bg_color, fg=self.text_color,
+		                                               activebackground=self.button_press_color, font=("Arial", 20), command=lambda: self.book_rejse())
+		self.kunde_frame_book_rejse_button.grid(row=1, column=1, padx=(0, 30))
+
+		self.kunde_book_rejse_button_frame_slet_rejse_button = tk.Button(self.kunde_frame_buttons, text="Slet rejse", relief="flat", bg=self.secondary_bg_color, fg=self.text_color,
+		                                                                 activebackground=self.button_press_color, font=("Arial", 20), command=self.unbook_rejse)
+		self.kunde_book_rejse_button_frame_slet_rejse_button.grid(row=1, column=2)
+
+		# Vælg pladser skærm
+
+		self.kunde_book_rejse_frame = tk.Frame(self.gui, bg=self.gui_background_color)
+
+		self.kunde_book_rejse_label_1 = tk.Label(self.kunde_book_rejse_frame, text="", bg=self.gui_background_color, fg=self.text_color, font=("Arial", 25))
+		self.kunde_book_rejse_label_1.grid(row=0, column=0)
+		self.kunde_book_rejse_label_2 = tk.Label(self.kunde_book_rejse_frame, text="", bg=self.gui_background_color, fg=self.text_color, font=("Arial", 25))
+		self.kunde_book_rejse_label_2.grid(row=1, column=0, pady=(10, 0))
+		self.kunde_book_rejse_label_3 = tk.Label(self.kunde_book_rejse_frame, text="", bg=self.gui_background_color, fg=self.text_color, font=("Arial", 25))
+		self.kunde_book_rejse_label_3.grid(row=2, column=0)
+		self.kunde_book_rejse_label_4 = tk.Label(self.kunde_book_rejse_frame, text="", bg=self.gui_background_color, fg=self.text_color, font=("Arial", 25))
+		self.kunde_book_rejse_label_4.grid(row=3, column=0)
+		self.kunde_book_rejse_label_pladser = tk.Label(self.kunde_book_rejse_frame, text="Hvor mange pladser vil du booke", bg=self.gui_background_color, fg=self.text_color, font=("Arial", 30))
+		self.kunde_book_rejse_label_pladser.grid(row=4, column=0, pady=(30, 0))
+		self.kunde_book_rejse_entry_pladser = tk.Entry(self.kunde_book_rejse_frame, font=("Arial", 30), width=10)
+		self.kunde_book_rejse_entry_pladser.grid(row=5, column=0)
+
+		self.kunde_book_rejse_button_frame = tk.Frame(self.kunde_book_rejse_frame, bg=self.gui_background_color)
+		self.kunde_book_rejse_button_frame.grid(row=6, column=0, pady=(30, 0))
+
+		self.kunde_book_rejse_button_frame_back_button = tk.Button(self.kunde_book_rejse_button_frame, text="Annuller", relief="flat", bg=self.secondary_bg_color, fg=self.text_color,
+		                                                           activebackground=self.button_press_color, font=("Arial", 20), command=lambda: self.change_window(self.kunde_frame))
+		self.kunde_book_rejse_button_frame_back_button.grid(row=0, column=0, padx=(0, 30))
+
+		self.kunde_book_rejse_button_frame_book_rejse_button = tk.Button(self.kunde_book_rejse_button_frame, text="Book rejse", relief="flat", bg=self.secondary_bg_color, fg=self.text_color,
+		                                                                 activebackground=self.button_press_color, font=("Arial", 20), command=lambda: self.book_rejse(self.kunde_book_rejse_entry_pladser.get()))
+		self.kunde_book_rejse_button_frame_book_rejse_button.grid(row=0, column=1)
+
+		self.kunde_book_rejse_button_frame_label_missing_info = tk.Label(self.kunde_book_rejse_frame, text="", bg=self.gui_background_color, fg=self.error_color, font=("Arial", 50))
+		self.kunde_book_rejse_button_frame_label_missing_info.grid(row=7, column=0, pady=(30, 0))
+
+	def unbook_rejse(self):
+		if not self.selected[1] == "bookingid" or self.selected[0] == -1:
+			return
+		pbdb.soft_delete_booking(pbdb.get_record(pbd.Booking, self.selected[0]))
+		self.selected = [-1, "", 0]
+		self.refresh_booking_treeview()
+		self.refresh_available_rejser_treeview()
+
+	def book_rejse(self, pladser=None):
+		if not self.selected[1] == "bookrejse" or self.selected[0] == -1:
+			return
+		rejse = pbdb.get_record(pbd.Rejse, self.selected[0])
+		remaining = get_remaining_slots(rejse.id)
+		if pladser is None:
+			self.kunde_book_rejse_label_1.configure(text="Rejse id: " + str(rejse.id))
+			self.kunde_book_rejse_label_2.configure(text="Rute: " + rejse.rute)
+			self.kunde_book_rejse_label_3.configure(text="Dato: " + rejse.dato)
+			self.kunde_book_rejse_label_4.configure(text="Plads tilbage: " + str(remaining))
+			self.change_window(self.kunde_book_rejse_frame)
+		else:
+			if pladser == "":
+				self.kunde_book_rejse_button_frame_label_missing_info.configure(text="Manglende information")
+				return
+			try:
+				plads = int(pladser)
+			except ValueError:
+				self.kunde_book_rejse_button_frame_label_missing_info.configure(text="Vær sød kun at bruge tal")
+				return
+			if plads < 1:
+				self.kunde_book_rejse_button_frame_label_missing_info.configure(text="Du kan ikke book færre end 1...")
+				return
+			if plads > remaining:
+				self.kunde_book_rejse_button_frame_label_missing_info.configure(text="Der er ikke nok pladser")
+				return
+			pbdb.insert_data(pbd.Booking(rejseid=rejse.id, kundeid=self.kundeid, pladser=plads))
+			self.kunde_book_rejse_button_frame_label_missing_info.configure(text="")
+			self.kunde_book_rejse_entry_pladser.delete(0, tk.END)
+			self.refresh_available_rejser_treeview()
+			self.refresh_booking_treeview()
+			self.selected = [-1, "", 0]
+			self.change_window(self.kunde_frame)
+
+	def refresh_booking_treeview(self):
+		empty_treeview(self.kunde_frame_treeview_bookinger_treeview)
+		bookinger = pbdb.get_all_bookinger(self.kundeid)
+		values = []
+		for booking in bookinger:
+			rejse = pbdb.get_record(pbd.Rejse, booking.rejseid)
+			value = [booking.id, rejse.rute, rejse.dato, booking.pladser]
+			values.append(value)
+		self.fill_booking_treeview(bookinger, values)
+
+	def fill_booking_treeview(self, bookinger, values):
+		color = 0
+		count = 0
+		for records in bookinger:
+			if records.valid():
+				if color % 2 == 0:
+					self.kunde_frame_treeview_bookinger_treeview.insert(parent='', index='end', text='', values=values[count], tags='evenrow')
+				else:
+					self.kunde_frame_treeview_bookinger_treeview.insert(parent='', index='end', text='', values=values[count], tags='oddrow')
+				color += 1
+			count += 1
+
+	def refresh_available_rejser_treeview(self):
+		empty_treeview(self.kunde_frame_treeview_rejse_treeview)
+		self.fill_available_rejser_treeview()
+
+	def fill_available_rejser_treeview(self):
+		rejser = pbdb.select_all(pbd.Rejse)
+		bookinger = pbdb.get_all_bookinger(self.kundeid)
+		bookederejser = []
+		rejselist = []
+		for booking in bookinger:
+			if booking.valid():
+				bookederejser.append(booking.rejseid)
+		for rejse in rejser:
+			remaining = get_remaining_slots(rejse.id)
+			if remaining > 0 and rejse.id not in bookederejser:
+				rejse.pladskapacitet = remaining
+				rejselist.append(rejse)
+		fill_treeview(self.kunde_frame_treeview_rejse_treeview, rejselist)
 
 	def delete_rejse(self):
 		if not self.selected[1] == "rejseid" or self.selected[0] == -1:
 			return
 		pbdb.soft_delete_rejse(pbdb.get_record(pbd.Rejse, self.selected[0]))
+		for bookinger in pbdb.get_all_rejse_bookinger(self.selected[0]):
+			pbdb.soft_delete_booking(bookinger)
 		self.selected = [-1, "", 0]
 		refresh_treeview(self.admin_treeview, pbdb.select_all(pbd.Rejse))
 
@@ -312,8 +434,8 @@ class Plusbus:
 			self.change_window(self.admin_frame)
 		else:
 			self.change_window(self.kunde_frame)
-			fill_treeview(self.kunde_frame_treeview_rejse_treeview, pbdb.select_all(pbd.Rejse), pbdb.get_all_bookinger(self.kundeid))
-			fill_treeview(self.kunde_frame_treeview_bookinger_treeview, pbdb.get_all_bookinger(self.kundeid))
+			self.refresh_available_rejser_treeview()
+			self.refresh_booking_treeview()
 
 	def change_window(self, next_window):
 		self.current_window.place_forget()
@@ -326,6 +448,8 @@ class Plusbus:
 		if efternavn == "" or kontaktinfo == "":
 			self.acc_create_label_frame_label_missing_info.configure(text="Manglende information")
 			return
+		self.acc_create_label_frame_entry_efternavn.delete(0, tk.END)
+		self.acc_create_label_frame_entry_kontaktinfo.delete(0, tk.END)
 		self.acc_create_label_frame_label_missing_info.configure(text="")
 		self.kundeid = pbdb.insert_data(pbd.Kunde(efternavn=efternavn, kontakt=kontaktinfo, auth=pbd.PermissionLevel.LOW))
 		self.change_window(self.acc_frame)
@@ -337,6 +461,14 @@ class Plusbus:
 			return
 		values = treeview.item(sel, "values")
 		self.selected = [int(values[0]), type_, int(values[3])]
+
+
+def get_remaining_slots(id_):
+	rejse = pbdb.get_record(pbd.Rejse, id_)
+	slots = rejse.pladskapacitet
+	for bookinger in pbdb.get_all_rejse_bookinger(rejse.id):
+		slots -= (bookinger.pladser if bookinger.pladser > 0 else 0)
+	return slots
 
 
 def empty_treeview(treeview):
