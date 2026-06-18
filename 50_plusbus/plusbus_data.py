@@ -18,7 +18,11 @@ class Kunde(Base):
 		return self.id, self.efternavn, self.kontakt, self.auth
 
 	def valid(self):
-		return not self.efternavn == "$deleted"
+		try:
+			value = int(self.auth)
+		except ValueError:
+			return False
+		return value >= 0
 
 class Rejse(Base):
 	__tablename__ = "rejser"

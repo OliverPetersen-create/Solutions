@@ -16,10 +16,22 @@ def select_all(table):
 def get_all_bookinger(kundeid):
 	with Session(engine) as session:
 		records = session.scalars(select(Booking).where(Booking.kundeid == kundeid)).all()
-		# result = []
-		# for record in records:
-		# 	result.append(record)
 	return records
+
+def change_rejse_data(id_, rute, dato, pladskapacitet):
+	with Session(engine) as session:
+		session.execute(update(Rejse).where(Rejse.id == id_).values(rute=rute, dato=dato, pladskapacitet=pladskapacitet))
+		session.commit()
+
+def change_account_data(id_, efternavn, kontaktinfo):
+	with Session(engine) as session:
+		session.execute(update(Kunde).where(Kunde.id == id_).values(efternavn=efternavn, kontakt=kontaktinfo))
+		session.commit()
+
+def change_booking_data(id_, pladser):
+	with Session(engine) as session:
+		session.execute(update(Booking).where(Booking.id == id_).values(pladser=pladser))
+		session.commit()
 
 def get_all_rejse_bookinger(rejseid):
 	with Session(engine) as session:
@@ -45,6 +57,11 @@ def insert_data(data):
 def soft_delete_booking(booking):
 	with Session(engine) as session:
 		session.execute(update(Booking).where(Booking.id == booking.id).values(pladser=-1))
+		session.commit()
+
+def soft_delete_account(kunde):
+	with Session(engine) as session:
+		session.execute(update(Kunde).where(Kunde.id == kunde.id).values(auth=-1))
 		session.commit()
 
 def soft_delete_rejse(rejse):
