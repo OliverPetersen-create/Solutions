@@ -153,7 +153,7 @@ class Plusbus:
 
 		self.admin_treeview.bind("<ButtonRelease-1>", lambda event: self.select_id(self.admin_treeview, "rejseid"))
 
-		fill_treeview(self.admin_treeview, pbdb.select_all(pbd.Rejse))
+		fill_treeview(self.admin_treeview, pbdb.select_all(pbd.Rejse), admin_treeview=True)
 
 		self.admin_entry_frame = tk.Frame(self.admin_frame, bg=self.gui_background_color)
 		self.admin_entry_frame.grid(row=2, column=0)
@@ -674,20 +674,20 @@ def empty_treeview(treeview):
 	treeview.delete(*treeview.get_children())
 
 
-def refresh_treeview(treeview, values, cond1=()):
+def refresh_treeview(treeview, values, cond=(), admin_treeview=()):
 	empty_treeview(treeview)
-	fill_treeview(treeview, values, cond1)
+	fill_treeview(treeview, values, cond, admin_treeview)
 
 
-def fill_treeview(treeview, values, cond1=()):
+def fill_treeview(treeview, values, cond=(), admin_treeview=()):
 	count = 0
 	for records in values:
 		if records.valid():
-			if records not in cond1:
+			if records not in cond:
 				if count % 2 == 0:
-					treeview.insert(parent='', index='end', text='', values=records.convert_to_tuple(), tags='evenrow')
+					treeview.insert(parent='', index='end', text='', values=records.convert_to_list().extend(admin_treeview), tags='evenrow')
 				else:
-					treeview.insert(parent='', index='end', text='', values=records.convert_to_tuple(), tags='oddrow')
+					treeview.insert(parent='', index='end', text='', values=records.convert_to_list().extend(admin_treeview), tags='oddrow')
 				count += 1
 
 
