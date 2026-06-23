@@ -107,9 +107,9 @@ def delete_soft_aircraft(aircraft):
     with Session(engine) as session:
         session.execute(update(Aircraft).where(Aircraft.id == aircraft.id).values(max_cargo_weight=-1, registration=aircraft.registration))
         session.commit()  # makes changes permanent in database
-        global last_soft_deleted_aircraft
-        last_soft_deleted_aircraft = aircraft.id
-        run_aircraft_test()
+    global last_soft_deleted_aircraft
+    last_soft_deleted_aircraft = aircraft.id
+    run_aircraft_test()
 # endregion aircraft
 
 
