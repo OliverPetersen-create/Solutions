@@ -27,12 +27,19 @@ Når dit program er færdigt, skal du skubbe det til dit github-repository.
 Fortsæt derefter med den næste fil.
 """
 
+
 def minimum(numberlist):
     smallest = numberlist[0]
     for number in numberlist:
         if number < smallest:
-           smallest = number
+            smallest = number
     return smallest
+
+def minimum2(numberlist):
+    return sorted(numberlist)[0]
+
 
 print(minimum([6, 2, 7, 3]))  # Should print 2
 print(minimum([8, 17, 8, 3, 5, 1, 3]))  # Should print 1
+print(minimum2([6, 2, 7, 3]))  # Should print 2
+print(minimum2([8, 17, 8, 3, 5, 1, 3]))  # Should print 1

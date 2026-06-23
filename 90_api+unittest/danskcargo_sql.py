@@ -5,6 +5,8 @@ from datetime import date
 
 from danskcargo_data import Container, Aircraft, Transport, Base
 
+from danskcargo_unittest import runner, TestAirCraft
+
 Database = 'sqlite:///danskcargo.db'  # first part: database type, second part: file path
 
 
@@ -98,11 +100,16 @@ def delete_hard_aircraft(aircraft):
         session.commit()  # makes changes permanent in database
 
 
+last_soft_deleted_aircraft = -1  # Var ikke 100% sikker på hvordan man skulle parse information dynamisk ind i en unittest, so lavede denne her variabel som tracker hvilket aircraft sidst blev soft deleted.
+
 def delete_soft_aircraft(aircraft):
     # soft delete a record in the aircraft table by setting its max_cargo_weight to -1 (see also method "valid" in the aircraft class)
     with Session(engine) as session:
         session.execute(update(Aircraft).where(Aircraft.id == aircraft.id).values(max_cargo_weight=-1, registration=aircraft.registration))
         session.commit()  # makes changes permanent in database
+        global last_soft_deleted_aircraft
+        last_soft_deleted_aircraft = aircraft.id
+        runner.run(TestAirCraft)
 # endregion aircraft
 
 
