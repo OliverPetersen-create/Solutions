@@ -74,6 +74,10 @@ class TestSoftDeletedAircraft(unittest.TestCase):
         self.assertEqual(aircraft.max_cargo_weight, -1)
 
 
+def run_aircraft_test():
+    test_air_craft = unittest.TestLoader().loadTestsFromTestCase(TestSoftDeletedAircraft)
+    runner.run(test_air_craft)
+
 if __name__ == '__main__':
     Database = 'sqlite:///danskcargo.db'  # first part: database type, second part: file path
     Base = declarative_base()  # creating the registry and declarative base classes - combined into one step. Base will serve as the base class for the ORM mapped classes we declare.
@@ -81,5 +85,4 @@ if __name__ == '__main__':
     Base.metadata.create_all(engine)
     unittest.main()
 else:
-    TestAirCraft = unittest.TestLoader().loadTestsFromTestCase(TestSoftDeletedAircraft)
     runner = unittest.TextTestRunner()

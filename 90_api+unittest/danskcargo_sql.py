@@ -5,7 +5,7 @@ from datetime import date
 
 from danskcargo_data import Container, Aircraft, Transport, Base
 
-from danskcargo_unittest import runner, TestAirCraft
+from danskcargo_unittest import run_aircraft_test
 
 Database = 'sqlite:///danskcargo.db'  # first part: database type, second part: file path
 
@@ -109,7 +109,7 @@ def delete_soft_aircraft(aircraft):
         session.commit()  # makes changes permanent in database
         global last_soft_deleted_aircraft
         last_soft_deleted_aircraft = aircraft.id
-        runner.run(TestAirCraft)
+        run_aircraft_test()
 # endregion aircraft
 
 
