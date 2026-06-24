@@ -9,6 +9,7 @@ Hvis du går i stå, spørg Google, andre elever, en AI eller læreren.
 Når dit program er færdigt, skub det til dit GitHub-repository.
 """
 
+
 import tkinter as tk
 
 
