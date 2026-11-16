@@ -23,5 +23,5 @@ def weather_now(city, key=KEY):
 
 
 if __name__ == "__main__":  # Executed when invoked directly
+    print(weather_now("xxxxzzzyy", KEY))
     print(weather_now("Høje taastrup", KEY))
-    # print(weather_now("xxxxzzzyy", KEY))

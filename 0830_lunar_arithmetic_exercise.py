@@ -64,6 +64,7 @@ class LunarInt(int):
 			result += str(current)
 		return int(result)
 
+
 def calc_lunar_primes(n):  # Jeg er helt stumped på hvordan i alverden lunar prime tallene fungerede... så siden jeg ikke rigtig kunne komme op med noget, valgte jeg bare at prøve næsten hver eneste mulighed... ikke ligefrem særlig effektivt.
 	primes = []
 	current = 19
