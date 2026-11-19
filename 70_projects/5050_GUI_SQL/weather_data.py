@@ -11,7 +11,7 @@ def get_weather(city, key=KEY):
 	weather = response.json()
 
 	if weather["cod"] != 200:
-		return "Ukendt lokation"
+		raise CityNotFoundException("City not found")
 	return {
 		"city": weather["name"],
 		"weather": weather["weather"][0]["main"],
@@ -24,17 +24,10 @@ def get_weather(city, key=KEY):
 		"country": [weather["sys"]["country"]]
 	}
 
-class WeatherIcon:
-	CLOUDS = "☁"
-	CLEAR = "☀️"
-	RAIN = "☔"
-	PARTIALLY_CLOUDY = "⛅"
+class CityNotFoundException(Exception):
 
-	@staticmethod
-	def get_icon_from_weather(weather: str, weather_detail: str):
-		if weather_detail == "few clouds" or weather_detail == "broken clouds" or weather_detail == "scattered clouds":
-			return WeatherIcon.PARTIALLY_CLOUDY
-		return WeatherIcon.__dict__[weather.upper()]
+	def __init__(self, msg):
+		super(CityNotFoundException, self).__init__(msg)
 
 class City(Base):
 	__tablename__ = "city"
@@ -45,6 +38,10 @@ class City(Base):
 		return f"City({self.id=}   {self.city=})"
 
 class Weather:
+	CLOUDS = "☁"
+	CLEAR = "☀️"
+	RAIN = "☔"
+	PARTIALLY_CLOUDY = "⛅"
 
 	weather = {}
 
@@ -68,8 +65,16 @@ class Weather:
 	def get_weather(city) -> Weather:
 		return Weather.weather[city]
 
+	@staticmethod
+	def get_icon_from_weather(weather: str, weather_detail: str):
+		if weather_detail == "few clouds" or weather_detail == "broken clouds" or weather_detail == "scattered clouds":
+			return Weather.PARTIALLY_CLOUDY
+		return Weather.__dict__[weather.upper()]
+
 
 if __name__ == "__main__":
-	weather1 = get_weather("høje taastrup", KEY)
-	print(weather1)
-	print(WeatherIcon.get_icon_from_weather(weather1["weather"], weather1["weather_detailed"]))
+	try:
+		weather1 = Weather("høje taastrup")
+		print(weather1)
+	except CityNotFoundException:
+		print("Fejl")
