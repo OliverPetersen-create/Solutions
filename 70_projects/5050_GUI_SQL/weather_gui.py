@@ -2,37 +2,36 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
 from PyQt6 import uic
-from weather_data import Weather, City, CityNotFoundException
+from weather_data import Weather, Location, LocationNotFoundException
 import weather_database
 
-
 main_stylesheet = """
-	QWidget[objectName="scroll_area"], QWidget[objectName="scroll_area_grid"] {
+	QWidget[objectName="scroll_area"], QWidget[objectName="scroll_area_grid"]{
 		background: transparent;
 	}
 """
 
-add_city_btn_stylesheet = """
-	QPushButton[objectName="add_city_btn"] {
+add_location_btn_stylesheet = """
+	QPushButton[objectName="add_location_btn"] {
 		font: 50pt "Arial";
 		background: rgba(125, 125, 125, 0.75);
 		border-radius: 30px;
 	}
-	QPushButton[objectName="add_city_btn"]:hover {
+	QPushButton[objectName="add_location_btn"]:hover {
 		background: rgba(160, 160, 160, 0.75);
 	}
 	
-	QPushButton[objectName="add_city_btn"]:pressed {
+	QPushButton[objectName="add_location_btn"]:pressed {
 		background: rgba(125, 125, 125, 0.75);
 	}
 """
 
-add_city_widget_stylesheet = """
-	QFrame[cssClass="content"] {
+add_location_widget_stylesheet = """
+	QFrame[class="content"] {
 		background: rgb(125, 125, 125);
 		color: white;
 	}
-	QLabel[cssClass="failed"] {
+	QLabel[class="failed"] {
 		font: 50pt "Arial";
 		color: red;
 	}
@@ -46,31 +45,23 @@ add_city_widget_stylesheet = """
 	}
 """
 
-city_frame_stylesheet = """
-	QFrame[cssClass="cityframe"] {
+location_frame_stylesheet = """
+	QFrame[class="locationframe"] {
 		background: rgba(125, 125, 125, 0.75);
 		border-radius: 10px;
 	}
-	QFrame[cssClass="cityframe"]:hover {
+	QFrame[class="locationframe"]:hover {
 		background: rgba(160, 160, 160, 0.75);
 	}
-	QFrame[cssClass="cityframe"]:pressed {
-		background: rgba(125, 125, 125, 0.75);
-	}
-	QLabel[cssClass="bigfont"] {
+	QLabel[class="bigfont"] {
 		font: 30pt "Arial";
+		
 	}
-	QLabel[cssClass="smallfont"] {
+	QLabel[class="smallfont"] {
 		font: 25pt "Arial";
 	}
 """
 
-city_detailed_frame_stylesheet = """
-	QFrame {
-		background: rgba(125, 125, 125, 0.75);
-		border-radius: 10px;
-	}
-"""
 
 def addShadows(*labels):
 	for label in labels:
@@ -79,22 +70,23 @@ def addShadows(*labels):
 		drop_shadow.setOffset(3, 3)
 		label.setGraphicsEffect(drop_shadow)
 
+
 class WeatherApp(QApplication):
 
 	def __init__(self):
-
 		super(WeatherApp, self).__init__([])
 		self.main_win = MainWindow()
 
-		for city_from_database in weather_database.get_all_records(City):
-			self.addCityFrame(city_from_database.city)
+		for location_from_database in weather_database.get_all_records(Location):
+			self.addLocationFrame(location_from_database.location)
 
 		self.main_win.show()
 		self.main_win.showFullScreen()
 
-	def addCityFrame(self, city):
-		weather = Weather(city)
-		self.main_win.scroll_area_content.layout().insertWidget(0, CityFrame(self.main_win, weather))
+	def addLocationFrame(self, location):
+		weather = Weather(location)
+		self.main_win.scroll_area_content.layout().insertWidget(0, LocationFrame(self.main_win, weather))
+
 
 class MainWindow(QMainWindow):
 
@@ -102,46 +94,48 @@ class MainWindow(QMainWindow):
 		super(MainWindow, self).__init__()
 		uic.loadUi(r".\design.ui", self)
 		self.scroll_area.setStyleSheet(main_stylesheet)
-		self.add_city_btn.setStyleSheet(add_city_btn_stylesheet)
-		self.add_city_btn.clicked.connect(self.add_city_press)
-		self.city_detailed_frame = QCityDetailedFrame()
-		self.layout.layout().addWidget(self.city_detailed_frame)
-		self.city_detailed_frame.hide()
+		self.add_location_btn.setStyleSheet(add_location_btn_stylesheet)
+		self.add_location_btn.clicked.connect(self.add_location_press)
+		self.location_detailed_widget = LocationDetailedFrame()
+		self.layout.layout().addWidget(self.location_detailed_widget, 0, 1)
 
-		self.add_city_layout = QGridLayout()
-		self.add_city_layout.setContentsMargins(0, 0, 0, 0)
-		self.add_city_layout.setSpacing(0)
-		self.add_city_widget = QWidget()
-		self.add_city_widget.setLayout(self.add_city_layout)
-		self.add_city_widget.setStyleSheet(add_city_widget_stylesheet)
+		# self.location_detailed_widget.hide()
+		self.scroll_area.hide()
 
-		self.add_city_content = QFrame()
-		self.add_city_content.setProperty("cssClass", "content")
-		self.add_city_content.setMinimumHeight(200)
-		self.add_city_content.setMaximumHeight(200)
-		self.add_city_content.setMinimumWidth(400)
-		self.add_city_content.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+		self.add_location_layout = QGridLayout()
+		self.add_location_layout.setContentsMargins(0, 0, 0, 0)
+		self.add_location_layout.setSpacing(0)
+		self.add_location_widget = QWidget()
+		self.add_location_widget.setLayout(self.add_location_layout)
+		self.add_location_widget.setStyleSheet(add_location_widget_stylesheet)
 
-		self.failed_label = QLabel("Ukendt by")
-		self.failed_label.setProperty("cssClass", "failed")
+		self.add_location_content = QFrame()
+		self.add_location_content.setProperty("class", "content")
+		self.add_location_content.setMinimumHeight(200)
+		self.add_location_content.setMaximumHeight(200)
+		self.add_location_content.setMinimumWidth(400)
+		self.add_location_content.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+
+		self.failed_label = QLabel("Ukendt lokation")
+		self.failed_label.setProperty("class", "failed")
 		addShadows(self.failed_label)
 
 		self.verticalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-		self.add_city_layout.addItem(self.verticalSpacer, 0, 1)
-		self.add_city_layout.addWidget(self.failed_label, 1, 1)
-		self.add_city_layout.setAlignment(self.failed_label, Qt.AlignmentFlag.AlignHCenter)
-		self.add_city_layout.addWidget(self.add_city_content, 2, 1)
-		self.add_city_layout.addItem(self.verticalSpacer, 3, 1)
+		self.add_location_layout.addItem(self.verticalSpacer, 0, 1)
+		self.add_location_layout.addWidget(self.failed_label, 1, 1)
+		self.add_location_layout.setAlignment(self.failed_label, Qt.AlignmentFlag.AlignHCenter)
+		self.add_location_layout.addWidget(self.add_location_content, 2, 1)
+		self.add_location_layout.addItem(self.verticalSpacer, 3, 1)
 
-		self.layout.layout().addWidget(self.add_city_widget, 0, 1)
+		self.layout.layout().addWidget(self.add_location_widget, 0, 1)
 
-		self.city_frame_layout = QVBoxLayout()
-		self.add_city_layout.setContentsMargins(0, 0, 0, 0)
-		self.add_city_layout.setSpacing(0)
-		self.add_city_content.setLayout(self.city_frame_layout)
+		self.location_frame_layout = QVBoxLayout()
+		self.add_location_layout.setContentsMargins(0, 0, 0, 0)
+		self.add_location_layout.setSpacing(0)
+		self.add_location_content.setLayout(self.location_frame_layout)
 
 		#
-		# Add content to add city frame
+		# Add content to add location frame
 		#
 
 		self.text_ed = TextEdit(self)
@@ -154,46 +148,46 @@ class MainWindow(QMainWindow):
 		self.container_widget = QWidget()
 		self.container_widget.setLayout(self.container_lo)
 		self.cancel_btn = QPushButton("Annuller")
-		self.cancel_btn.clicked.connect(self.cancelAddCity)
+		self.cancel_btn.clicked.connect(self.cancelAddLocation)
 		self.cancel_btn.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-		self.add_btn = QPushButton("Tilføj by")
-		self.add_btn.clicked.connect(self.addCity)
+		self.add_btn = QPushButton("Tilføj lokation")
+		self.add_btn.clicked.connect(self.addLocation)
 		self.add_btn.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
 
 		self.container_lo.addWidget(self.cancel_btn)
 		self.container_lo.addWidget(self.add_btn)
 
-		self.city_frame_layout.addWidget(self.text_ed)
-		self.city_frame_layout.addWidget(self.container_widget)
+		self.location_frame_layout.addWidget(self.text_ed)
+		self.location_frame_layout.addWidget(self.container_widget)
 
 		self.failed_label.hide()
-		self.add_city_widget.hide()
+		self.add_location_widget.hide()
 
 		self.fullScreen = True
 
-	def addCity(self):
+	def addLocation(self):
 		if len(self.text_ed.toPlainText()) < 1:
 			return
 		if (weather_database.get_record(self.text_ed.toPlainText().lower())) is not None:
-			self.failed_label.setText("By allerede tilføjet")
+			self.failed_label.setText("Lokation allerede tilføjet")
 			self.failed_label.show()
 			return
 		try:
 			weather = Weather(self.text_ed.toPlainText())
-			weather_database.insert_data(City(city=self.text_ed.toPlainText().lower()))
-			self.scroll_area_content.layout().insertWidget(0, CityFrame(self, weather))
+			weather_database.insert_data(Location(location=self.text_ed.toPlainText().lower()))
+			self.scroll_area_content.layout().insertWidget(0, LocationFrame(self, weather))
 			self.text_ed.setPlainText("")
-			self.add_city_widget.hide()
+			self.add_location_widget.hide()
 			self.failed_label.hide()
-		except CityNotFoundException:
-			self.failed_label.setText("Ukendt by")
+		except LocationNotFoundException:
+			self.failed_label.setText("Ukendt lokation")
 			self.failed_label.show()
 
-	def cancelAddCity(self):
+	def cancelAddLocation(self):
 		self.text_ed.setPlainText("")
-		self.add_city_widget.hide()
+		self.add_location_widget.hide()
 		self.failed_label.hide()
-		self.add_city_widget.hide()
+		self.add_location_widget.hide()
 
 	def keyPressEvent(self, event: QKeyEvent):
 		k = event.key()
@@ -211,10 +205,11 @@ class MainWindow(QMainWindow):
 			self.showFullScreen()
 		self.fullScreen = not self.fullScreen
 
-	def add_city_press(self):
-		if not self.add_city_widget.isHidden():
+	def add_location_press(self):
+		if not self.add_location_widget.isHidden():
 			return
-		self.add_city_widget.show()
+		self.add_location_widget.show()
+
 
 class TextEdit(QPlainTextEdit):
 
@@ -225,74 +220,133 @@ class TextEdit(QPlainTextEdit):
 	def keyPressEvent(self, e: QKeyEvent):
 		k = e.key()
 		if k == Qt.Key.Key_Enter or k == Qt.Key.Key_Return:
-			self.inst.addCity()
+			self.inst.addLocation()
 			e.ignore()
 			return
 		super().keyPressEvent(e)
 
-class QCityDetailedFrame(QFrame):
+
+location_detailed_frame_stylesheet = """
+	QWidget[class="transparent"]{
+		background: transparent;
+	}
+	LocationDetailedFrame[class="content_frame"] {
+		background: rgba(125, 125, 125, 0.75);
+		border-radius: 10px;
+	}
+	
+	QLabel[class="title_text"] {
+		font-size: 50pt;
+	}
+	
+	QLabel {
+		border: 1px solid red;
+	}
+	
+"""
+
+class LocationDetailedFrame(QScrollArea):
 
 	def __init__(self):
-		super(QCityDetailedFrame, self).__init__()
+		super(LocationDetailedFrame, self).__init__()
 		self.weather = None
 		self.setMaximumWidth(800)
-		self.setStyleSheet(city_detailed_frame_stylesheet)
+		self.setProperty("class", "content_frame")
+		self.setStyleSheet(location_detailed_frame_stylesheet)
+		self.self_lo = QStackedLayout()
+		self.self_lo.setProperty("class", "transparent")
+		self.self_lo.setContentsMargins(0, 0, 0, 0)
+		self.setLayout(self.self_lo)
 
-	def show(self, weather: Weather):
-		print(self.weather)
-		super().show()
+		self.holder = QWidget()
+		self.holder.setProperty("class", "transparent")
+		self.holder_lo = QGridLayout()
+		self.holder.setLayout(self.holder_lo)
+		self.holder_lo.setSpacing(0)
+		self.holder_lo.setContentsMargins(0, 0, 0, 0)
+
+		self.vertical_spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+		self.horizontal_spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+		#
+		# Location details:
+		#
+
+		self.title = QLabel("Høje Taastrup")
+		# self.title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+		self.title.setProperty("class", "title_text")
+		self.holder_lo.addWidget(self.title, 0, 1)
+
+		#
+		#
+		#
+
+		self.setWidget(self.holder)
+
+	def setup(self, weather: Weather):
 		self.weather = weather
-		print(self.weather)
 
-class CityFrame(QFrame):
+
+class LocationFrame(QFrame):
 
 	def __init__(self, parent: MainWindow, weather: Weather):
-		super(CityFrame, self).__init__()
-		self.weather = weather;
+		super(LocationFrame, self).__init__()
+		self.weather = weather
 		self.parent = parent
 		self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
 		self.setMinimumHeight(200)
 		self.setMaximumHeight(200)
-		self.setProperty("cssClass", "cityframe")
-		self.setStyleSheet(city_frame_stylesheet)
+		self.setProperty("class", "locationframe")
+		self.setStyleSheet(location_frame_stylesheet)
 		layout = QGridLayout()
 		layout.setContentsMargins(30, 30, 30, 0)
-		layout.setSpacing(10)
+		layout.setSpacing(0)
 
-		self.city_label = QLabel(weather.city)
-		self.city_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+		self.location_label = QLabel(weather.location)
+		self.location_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
 		self.temp_label = QLabel(f"{round(weather.temp)} °C")
 		self.temp_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
-		self.weather_label = QLabel(f"{weather.weather} {Weather.get_icon_from_weather(weather.weather, weather.weather_detailed)}")
+		self.weather_label = QLabel(f"{weather.weather}")
 		self.weather_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+		self.weather_label.setContentsMargins(0, 0, 10, 0)
+		self.weather_icon = QLabel()
+		pixmap = QPixmap(f"images/{weather.weather_icon}.png")
+		self.weather_icon.setPixmap(pixmap)
+		self.weather_icon.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
 		self.wind_label = QLabel(f"{weather.wind_speed:.1f} m/s ༄")
 		self.wind_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
-		self.verticalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+		self.vertical_spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+		self.horizontal_spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-		self.city_label.setProperty("cssClass", "bigfont")
-		self.temp_label.setProperty("cssClass", "bigfont")
-		self.weather_label.setProperty("cssClass", "smallfont")
-		self.wind_label.setProperty("cssClass", "smallfont")
+		self.location_label.setProperty("class", "bigfont")
+		self.temp_label.setProperty("class", "bigfont")
+		self.weather_label.setProperty("class", "smallfont")
+		self.weather_icon.setProperty("class", "smallfont")
+		self.wind_label.setProperty("class", "smallfont")
 
-		addShadows(self.city_label, self.temp_label, self.weather_label, self.wind_label)
+		addShadows(self.location_label, self.temp_label, self.weather_label, self.wind_label)
 
-		layout.addWidget(self.city_label, 0, 0)
-		layout.addWidget(self.temp_label, 0, 1)
+		layout.addWidget(self.location_label, 0, 0, 1, 2)
+		layout.addWidget(self.temp_label, 0, 3)
 		layout.addWidget(self.weather_label, 1, 0)
-		layout.addWidget(self.wind_label, 1, 1)
-		layout.addItem(self.verticalSpacer, 2, 0)
-		layout.addItem(self.verticalSpacer, 2, 1)
+		layout.addWidget(self.weather_icon, 1, 1)
+		layout.addItem(self.horizontal_spacer, 1, 2)
+		layout.addWidget(self.wind_label, 1, 3)
+		layout.addItem(self.vertical_spacer, 2, 0)
+		layout.addItem(self.vertical_spacer, 2, 3)
 
-		layout.setAlignment(self.city_label, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+		layout.setAlignment(self.location_label, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
 		layout.setAlignment(self.temp_label, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
-		layout.setAlignment(self.weather_label, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-		layout.setAlignment(self.wind_label, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
+		layout.setAlignment(self.weather_label, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+		layout.setAlignment(self.weather_icon, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+		layout.setAlignment(self.wind_label, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
 
 		self.setLayout(layout)
 
 	def mousePressEvent(self, e: QMouseEvent):
 		self.parent.scroll_area.hide()
-		self.parent.city_detailed_frame.show(self.weather)
+		self.parent.location_detailed_frame.show()
+		self.parent.location_detailed_frame.setup(self.weather)
 
 
 if __name__ == "__main__":

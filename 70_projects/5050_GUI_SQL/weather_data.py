@@ -1,80 +1,111 @@
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, String, Integer
+import datetime
 import httpx
 
 Base = declarative_base()
 KEY = "2a3891ce1248786a1398a888debb0368"
 
-def get_weather(city, key=KEY):
-	url = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&units=metric&APPID=" + key
+
+def get_weather(location, key=KEY):
+	url = "https://api.openweathermap.org/data/2.5/weather?q=" + location + "&units=metric&APPID=" + key
 	response = httpx.get(url)
 	weather = response.json()
 
 	if weather["cod"] != 200:
-		raise CityNotFoundException("City not found")
+		raise LocationNotFoundException("Location not found")
 	return {
-		"city": weather["name"],
+		"location": weather["name"],
 		"weather": weather["weather"][0]["main"],
 		"weather_detailed": weather["weather"][0]["description"],
+		"weather_icon": weather["weather"][0]["icon"],
 		"temp": float(weather["main"]["temp"]),
 		"temp_feels_like": float(weather["main"]["feels_like"]),
+		"temp_min": float(weather["main"]["temp_min"]),
+		"temp_max": float(weather["main"]["temp_max"]),
 		"humidity": float(weather["main"]["humidity"]),
 		"wind_speed": float(weather["wind"]["speed"]),
 		"wind_deg": float(weather["wind"]["deg"]),
-		"country": [weather["sys"]["country"]]
+		"country": weather["sys"]["country"],
+		"sunrise": weather["sys"]["sunrise"],
+		"sunset": weather["sys"]["sunset"],
+		"timezone": weather["timezone"],
+		"rain": weather.get("rain", None),
+		"snow": weather.get("snow", None)
 	}
 
-class CityNotFoundException(Exception):
+
+class LocationNotFoundException(Exception):
 
 	def __init__(self, msg):
-		super(CityNotFoundException, self).__init__(msg)
+		super(LocationNotFoundException, self).__init__(msg)
 
-class City(Base):
-	__tablename__ = "city"
+
+class Location(Base):
+	__tablename__ = "location"
 	id = Column(Integer, primary_key=True)
-	city = Column(String, unique=True)
+	location = Column(String, unique=True)
 
 	def __repr__(self):
-		return f"City({self.id=}   {self.city=})"
+		return f"Location({self.id=}   {self.location=})"
+
 
 class Weather:
-	CLOUDS = "☁"
-	CLEAR = "☀️"
-	RAIN = "☔"
-	PARTIALLY_CLOUDY = "⛅"
-
 	weather = {}
 
-	def __init__(self, city):
-		weather = get_weather(city, KEY)
-		self.city = weather["city"]
+	def __init__(self, location):
+		weather = get_weather(location, KEY)
+		self.location = weather["location"]
 		self.weather = weather["weather"]
 		self.weather_detailed = weather["weather_detailed"]
+		self.weather_icon = weather["weather_icon"]
 		self.temp = weather["temp"]
 		self.temp_feels_like = weather["temp_feels_like"]
+		self.temp_min = weather["temp_min"]
+		self.temp_max = weather["temp_max"]
 		self.humidity = weather["humidity"]
 		self.wind_speed = weather["wind_speed"]
 		self.wind_deg = weather["wind_deg"]
 		self.country = weather["country"]
-		Weather.weather[city] = self
+		self.sunrise = weather["sunrise"]
+		self.sunset = weather["sunset"]
+		self.timezone = weather["timezone"]
+		self.rain = weather["rain"]
+		self.snow = weather["snow"]
+		Weather.weather[location] = self
 
 	def __repr__(self):
-		return f"{self.city=} {self.weather=} {self.weather_detailed=} {self.temp=} {self.temp_feels_like=} {self.humidity=} {self.wind_speed=} {self.wind_deg=} {self.country=}"
+		return (f"{self.location=} {self.weather=} {self.weather_detailed=} {self.weather_icon=}"
+		        f"{self.temp=} {self.temp_feels_like=} {self.temp_min=} "
+		        f"{self.temp_max=} {self.humidity=} {self.wind_speed=} "
+		        f"{self.wind_deg=} {self.country=} {self.sunrise=} "
+		        f"{self.sunset=} {self.timezone=} {self.rain=} {self.snow=}")
 
 	@staticmethod
-	def get_weather(city) -> Weather:
-		return Weather.weather[city]
-
-	@staticmethod
-	def get_icon_from_weather(weather: str, weather_detail: str):
-		if weather_detail == "few clouds" or weather_detail == "broken clouds" or weather_detail == "scattered clouds":
-			return Weather.PARTIALLY_CLOUDY
-		return Weather.__dict__[weather.upper()]
+	def get_weather(location) -> Weather:
+		return Weather.weather[location]
 
 
 if __name__ == "__main__":
 	try:
-		weather1 = Weather("høje taastrup")
+		weather1 = Weather("charlottetown")
 		print(weather1)
-	except CityNotFoundException:
+		print(weather1.rain)
+		print(weather1.snow)
+
+		date_time = datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=weather1.timezone)
+		sunrise = datetime.datetime.fromtimestamp(weather1.sunrise, datetime.UTC) + datetime.timedelta(seconds=weather1.timezone)
+		sunset = datetime.datetime.fromtimestamp(weather1.sunset, datetime.UTC) + datetime.timedelta(seconds=weather1.timezone)
+		print(date_time.strftime("%Y-%m-%d %H:%M:%S"))
+		print(sunrise.strftime("%Y-%m-%d %H:%M:%S"))
+		print(sunset.strftime("%Y-%m-%d %H:%M:%S"))
+
+	except LocationNotFoundException:
 		print("Fejl")
+
+#Rain   light rain
+#Rain   moderate rain
+#Rain   heavy intensity rain
+
+#Snow   light rain and snow
+#Snow   light snow
