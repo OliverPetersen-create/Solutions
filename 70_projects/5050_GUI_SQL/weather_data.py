@@ -1,3 +1,4 @@
+from dateutil.tz import UTC
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, String, Integer
 import datetime
@@ -11,7 +12,6 @@ def get_weather(location, key=KEY):
 	url = "https://api.openweathermap.org/data/2.5/weather?q=" + location + "&units=metric&APPID=" + key
 	response = httpx.get(url)
 	weather = response.json()
-
 	if weather["cod"] != 200:
 		raise LocationNotFoundException("Location not found")
 	return {
@@ -74,6 +74,12 @@ class Weather:
 		self.snow = weather["snow"]
 		Weather.weather[location] = self
 
+	def getSunriseTime(self):
+		return datetime.datetime.fromtimestamp(self.sunrise, datetime.UTC) + datetime.timedelta(seconds=self.timezone), datetime.datetime.fromtimestamp(self.sunrise)
+
+	def getSunsetTime(self):
+		return datetime.datetime.fromtimestamp(self.sunset, datetime.UTC) + datetime.timedelta(seconds=self.timezone), datetime.datetime.fromtimestamp(self.sunset)
+
 	def __repr__(self):
 		return (f"{self.location=} {self.weather=} {self.weather_detailed=} {self.weather_icon=}"
 		        f"{self.temp=} {self.temp_feels_like=} {self.temp_min=} "
@@ -88,24 +94,9 @@ class Weather:
 
 if __name__ == "__main__":
 	try:
-		weather1 = Weather("charlottetown")
-		print(weather1)
+		weather1 = Weather("irkutsk")
 		print(weather1.rain)
 		print(weather1.snow)
 
-		date_time = datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=weather1.timezone)
-		sunrise = datetime.datetime.fromtimestamp(weather1.sunrise, datetime.UTC) + datetime.timedelta(seconds=weather1.timezone)
-		sunset = datetime.datetime.fromtimestamp(weather1.sunset, datetime.UTC) + datetime.timedelta(seconds=weather1.timezone)
-		print(date_time.strftime("%Y-%m-%d %H:%M:%S"))
-		print(sunrise.strftime("%Y-%m-%d %H:%M:%S"))
-		print(sunset.strftime("%Y-%m-%d %H:%M:%S"))
-
 	except LocationNotFoundException:
 		print("Fejl")
-
-#Rain   light rain
-#Rain   moderate rain
-#Rain   heavy intensity rain
-
-#Snow   light rain and snow
-#Snow   light snow

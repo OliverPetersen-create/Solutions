@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, select, update
+from sqlalchemy import create_engine, select, delete
 
 from weather_data import Base, Location, Weather
 
@@ -14,6 +14,11 @@ def get_record(location):
 	with Session(engine) as session:
 		record = session.scalars(select(Location).where(Location.location == location)).first()
 	return record
+
+def delete_record(location):
+	with Session(engine) as session:
+		session.execute(delete(Location).where(Location.location == location))
+		session.commit()
 
 def get_all_records(table):
 	with Session(engine) as session:

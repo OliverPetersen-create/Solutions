@@ -104,7 +104,7 @@
          <number>0</number>
         </property>
         <item row="0" column="0">
-         <widget class="QFrame" name="scroll_area_content">
+         <widget class="QWidget" name="scroll_area_content" native="true">
           <layout class="QVBoxLayout" name="verticalLayout">
            <property name="spacing">
             <number>20</number>

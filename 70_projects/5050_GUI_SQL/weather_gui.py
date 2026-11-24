@@ -62,14 +62,9 @@ location_frame_stylesheet = """
 	}
 """
 
-
-def addShadows(*labels):
-	for label in labels:
-		drop_shadow = QGraphicsDropShadowEffect()
-		drop_shadow.setBlurRadius(1)
-		drop_shadow.setOffset(3, 3)
-		label.setGraphicsEffect(drop_shadow)
-
+def delLOSpace(layout):
+	layout.setContentsMargins(0, 0, 0, 0)
+	layout.setSpacing(0)
 
 class WeatherApp(QApplication):
 
@@ -96,15 +91,13 @@ class MainWindow(QMainWindow):
 		self.scroll_area.setStyleSheet(main_stylesheet)
 		self.add_location_btn.setStyleSheet(add_location_btn_stylesheet)
 		self.add_location_btn.clicked.connect(self.add_location_press)
-		self.location_detailed_widget = LocationDetailedFrame()
+		self.location_detailed_widget = LocationDetailedFrame(self)
 		self.layout.layout().addWidget(self.location_detailed_widget, 0, 1)
 
-		# self.location_detailed_widget.hide()
-		self.scroll_area.hide()
+		self.location_detailed_widget.hide()
 
 		self.add_location_layout = QGridLayout()
-		self.add_location_layout.setContentsMargins(0, 0, 0, 0)
-		self.add_location_layout.setSpacing(0)
+		delLOSpace(self.add_location_layout)
 		self.add_location_widget = QWidget()
 		self.add_location_widget.setLayout(self.add_location_layout)
 		self.add_location_widget.setStyleSheet(add_location_widget_stylesheet)
@@ -116,9 +109,8 @@ class MainWindow(QMainWindow):
 		self.add_location_content.setMinimumWidth(400)
 		self.add_location_content.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
 
-		self.failed_label = QLabel("Ukendt lokation")
+		self.failed_label = Label("Ukendt lokation")
 		self.failed_label.setProperty("class", "failed")
-		addShadows(self.failed_label)
 
 		self.verticalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 		self.add_location_layout.addItem(self.verticalSpacer, 0, 1)
@@ -130,8 +122,7 @@ class MainWindow(QMainWindow):
 		self.layout.layout().addWidget(self.add_location_widget, 0, 1)
 
 		self.location_frame_layout = QVBoxLayout()
-		self.add_location_layout.setContentsMargins(0, 0, 0, 0)
-		self.add_location_layout.setSpacing(0)
+		delLOSpace(self.add_location_layout)
 		self.add_location_content.setLayout(self.location_frame_layout)
 
 		#
@@ -143,8 +134,7 @@ class MainWindow(QMainWindow):
 		self.text_ed.setMaximumHeight(100)
 
 		self.container_lo = QHBoxLayout()
-		self.container_lo.setContentsMargins(0, 0, 0, 0)
-		self.container_lo.setSpacing(0)
+		delLOSpace(self.container_lo)
 		self.container_widget = QWidget()
 		self.container_widget.setLayout(self.container_lo)
 		self.cancel_btn = QPushButton("Annuller")
@@ -174,7 +164,7 @@ class MainWindow(QMainWindow):
 			return
 		try:
 			weather = Weather(self.text_ed.toPlainText())
-			weather_database.insert_data(Location(location=self.text_ed.toPlainText().lower()))
+			weather_database.insert_data(Location(location=weather.location.lower()))
 			self.scroll_area_content.layout().insertWidget(0, LocationFrame(self, weather))
 			self.text_ed.setPlainText("")
 			self.add_location_widget.hide()
@@ -238,54 +228,305 @@ location_detailed_frame_stylesheet = """
 	QLabel[class="title_text"] {
 		font-size: 50pt;
 	}
+	QLabel[class="temp_text"] {
+		font-size: 30pt;
+	}
+	QLabel[class="header_text"] {
+		font-size: 30pt;
+	}
+	QLabel[class="small_text1"] {
+		font-size: 25pt;
+	}
+	QLabel[class="small_text2"] {
+		font-size: 20pt;
+	}
+	QPushButton[class="btn"] {
+		font: 20pt "Arial";
+		background: rgba(75, 75, 75, 0.75);
+		padding: 20px 30px;
+		border-radius: 10px;
+	}
+	QPushButton[class="btn"]:hover {
+		background: rgba(100, 100, 100, 0.75);
+	}
 	
-	QLabel {
-		border: 1px solid red;
+	QPushButton[class="btn"]:pressed {
+		background: rgba(75, 75, 75, 0.75);
 	}
 	
 """
 
 class LocationDetailedFrame(QScrollArea):
 
-	def __init__(self):
+	def __init__(self, parent: MainWindow):
 		super(LocationDetailedFrame, self).__init__()
-		self.weather = None
+		self.weather_obj: Weather = None
+		self.frame: LocationFrame = None
+		self.parent = parent
 		self.setMaximumWidth(800)
 		self.setProperty("class", "content_frame")
 		self.setStyleSheet(location_detailed_frame_stylesheet)
-		self.self_lo = QStackedLayout()
-		self.self_lo.setProperty("class", "transparent")
-		self.self_lo.setContentsMargins(0, 0, 0, 0)
-		self.setLayout(self.self_lo)
-
-		self.holder = QWidget()
-		self.holder.setProperty("class", "transparent")
-		self.holder_lo = QGridLayout()
-		self.holder.setLayout(self.holder_lo)
-		self.holder_lo.setSpacing(0)
-		self.holder_lo.setContentsMargins(0, 0, 0, 0)
-
-		self.vertical_spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-		self.horizontal_spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+		self.setWidgetResizable(True)
+		self.inner = QWidget(self)
+		self.inner.setProperty("class", "transparent")
+		self.lo = QGridLayout()
+		self.inner.setLayout(self.lo)
+		self.lo.setContentsMargins(20, 0, 20, 0)
+		self.lo.setSpacing(0)
+		self.setWidget(self.inner)
 
 		#
-		# Location details:
+		# Add content inside of area
 		#
 
-		self.title = QLabel("Høje Taastrup")
-		# self.title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+		vertical_spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+		horizontal_spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+		self.title = Label("---")
 		self.title.setProperty("class", "title_text")
-		self.holder_lo.addWidget(self.title, 0, 1)
+		self.lo.addWidget(self.title, 0, 0, 1, -1)
+		self.lo.setAlignment(self.title, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
 
-		#
-		#
-		#
+		self.temp = Label(f"---")
+		self.temp.setProperty("class", "temp_text")
+		self.lo.addWidget(self.temp, 1, 0, 1, -1)
+		self.lo.setAlignment(self.temp, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
 
-		self.setWidget(self.holder)
+		# --------- Rain/Snow ---------
 
-	def setup(self, weather: Weather):
-		self.weather = weather
+		self.rs_widget = QWidget()
+		self.lo.addWidget(self.rs_widget, 2, 0, 1, -1)
+		self.rslo = QHBoxLayout()
+		delLOSpace(self.rslo)
+		self.rs_widget.setLayout(self.rslo)
 
+		self.rain: QLabel = None
+		self.snow: QLabel = None
+
+		# --------- Weather widget ---------
+
+		self.weather_widget = QWidget()
+		self.lo.addWidget(self.weather_widget, 3, 0)
+		self.wlo = QGridLayout()
+		delLOSpace(self.wlo)
+		self.wlo.setContentsMargins(0, 30, 0, 0)
+		self.weather_widget.setLayout(self.wlo)
+
+		self.weather = Label("---")
+		self.weather.setProperty("class", "header_text")
+		self.weather.setContentsMargins(0, 0, 10, 0)
+		self.wlo.addWidget(self.weather, 0, 0)
+		self.wlo.setAlignment(self.weather, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
+		self.weather_detailed = Label("---")
+		self.weather_detailed.setProperty("class", "small_text1")
+		self.wlo.addWidget(self.weather_detailed, 1, 0, 1, -1)
+		self.wlo.setAlignment(self.weather_detailed, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+		# self.wlo.addItem(vertical_spacer)
+
+		self.weather_icon = QLabel()
+		self.wlo.addWidget(self.weather_icon, 0, 1)
+		self.wlo.setAlignment(self.weather_icon, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
+		# --------- Temp widget ---------
+
+		self.temp_widget = QWidget()
+		self.lo.addWidget(self.temp_widget, 3, 2)
+		self.lo.addItem(horizontal_spacer, 3, 1)
+		self.tlo = QGridLayout()
+		delLOSpace(self.tlo)
+		self.tlo.setContentsMargins(0, 30, 0, 0)
+		self.temp_widget.setLayout(self.tlo)
+
+		self.tempf = Label("---")
+		self.tempf.setProperty("class", "small_text1")
+		self.tempf.setContentsMargins(0, 0, 10, 0)
+		self.tlo.addWidget(self.tempf, 0, 1)
+		self.tlo.setAlignment(self.tempf, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+
+		self.temp_freezing: QLabel = None
+
+		self.min_temp = Label("Min")
+		self.min_temp.setProperty("class", "small_text1")
+		self.min_temp.setContentsMargins(40, 0, 0, 0)
+		self.tlo.addWidget(self.min_temp, 1, 1, 1, 2)
+		self.tlo.setAlignment(self.min_temp, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
+		self.max_temp = Label("Max")
+		self.max_temp.setProperty("class", "small_text1")
+		self.max_temp.setContentsMargins(0, 0, 40, 0)
+		self.tlo.addWidget(self.max_temp, 1, 1, 1, 2)
+		self.tlo.setAlignment(self.max_temp, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+
+		self.min_temp_num = Label("---")
+		self.min_temp_num.setProperty("class", "small_text2")
+		self.min_temp_num.setContentsMargins(40, 0, 0, 0)
+		self.tlo.addWidget(self.min_temp_num, 2, 1, 1, 2)
+		self.tlo.setAlignment(self.min_temp_num, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
+		self.max_temp_num = Label("---")
+		self.max_temp_num.setProperty("class", "small_text2")
+		self.max_temp_num.setContentsMargins(0, 0, 40, 0)
+		self.tlo.addWidget(self.max_temp_num, 2, 1, 1, 2)
+		self.tlo.setAlignment(self.max_temp_num, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+
+		self.tlo.addItem(horizontal_spacer, 0, 0, -1, 1)
+		self.tlo.addItem(horizontal_spacer, 0, 3, -1, 1)
+
+		# --------- Wind widget ---------
+
+		self.wind_widget = QWidget()
+		self.lo.addWidget(self.wind_widget, 4, 2)
+		self.lo.addItem(horizontal_spacer, 4, 1)
+		self.wilo = QGridLayout()
+		delLOSpace(self.wilo)
+		self.wilo.setContentsMargins(0, 30, 0, 0)
+		self.wind_widget.setLayout(self.wilo)
+
+		self.wind = Label("---")
+		self.wind.setProperty("class", "header_text")
+		self.wilo.addWidget(self.wind, 0, 0)
+		self.wilo.setAlignment(self.wind, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+
+		self.wind_deg = Label("---")
+		self.wind_deg.setProperty("class", "small_text1")
+		self.wilo.addWidget(self.wind_deg, 1, 0)
+		self.wilo.setAlignment(self.wind_deg, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+
+		# ----------------------------------
+
+		self.humidity = Label(f"---")
+		self.humidity.setContentsMargins(0, 20, 0, 0)
+		self.humidity.setProperty("class", "small_text1")
+		self.lo.addWidget(self.humidity, 4, 0)
+		self.lo.setAlignment(self.humidity, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
+		# --------- Sunrise/Sunset widget ---------
+
+		self.sun_widget = QWidget()
+		self.lo.addWidget(self.sun_widget, 5, 0, 1, -1)
+		self.sunlo = QHBoxLayout()
+		delLOSpace(self.sunlo)
+		self.sunlo.setContentsMargins(0, 50, 0, 50)
+		self.sun_widget.setLayout(self.sunlo)
+
+		# Sunrise
+
+		self.sunrise_widget = QWidget()
+		self.sunlo.addWidget(self.sunrise_widget)
+		self.sunrise_lo = QVBoxLayout()
+		delLOSpace(self.sunrise_lo)
+		self.sunrise_widget.setLayout(self.sunrise_lo)
+
+		sunrise_pixmap = QPixmap(f"images/sunrise.png")
+		self.sunrise_icon = QLabel()
+		self.sunrise_icon.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+		self.sunrise_icon.setPixmap(sunrise_pixmap)
+		self.sunrise_lo.addWidget(self.sunrise_icon)
+
+		self.sunrise_label = Label("---")
+		self.sunrise_label.setProperty("class", "small_text1")
+		self.sunrise_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+		self.sunrise_lo.addWidget(self.sunrise_label)
+
+		# Sunset
+
+		self.sunset_widget = QWidget()
+		self.sunlo.addWidget(self.sunset_widget)
+		self.sunset_lo = QVBoxLayout()
+		delLOSpace(self.sunset_lo)
+		self.sunset_widget.setLayout(self.sunset_lo)
+
+		sunset_pixmap = QPixmap(f"images/sunset.png")
+		self.sunset_pixmap = QLabel()
+		self.sunset_pixmap.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+		self.sunset_pixmap.setPixmap(sunset_pixmap)
+		self.sunset_lo.addWidget(self.sunset_pixmap)
+
+		self.sunset_label = Label("---")
+		self.sunset_label.setProperty("class", "small_text1")
+		self.sunset_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+		self.sunset_lo.addWidget(self.sunset_label)
+
+		# ----------------------------------
+
+		self.back_btn = QPushButton("Tilbage")
+		self.back_btn.setProperty("class", "btn")
+		self.back_btn.pressed.connect(self.back)
+		self.del_btn = QPushButton("Slet")
+		self.del_btn.setProperty("class", "btn")
+		self.del_btn.pressed.connect(self.delete)
+		self.lo.addWidget(self.back_btn, 6, 0, 1, -1, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+		self.lo.addWidget(self.del_btn, 6, 0, 1, -1, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+
+		self.lo.addItem(vertical_spacer)
+
+	def delete(self):
+		self.back()
+		weather_database.delete_record(self.weather_obj.location.lower())
+		for children in self.parent.scroll_area_content.children():
+			if children is self.frame:
+				children.setParent(None)
+
+	def back(self):
+		self.hide()
+		self.parent.scroll_area.show()
+
+	def setup(self, weather: Weather, frame: LocationFrame):
+		self.weather_obj = weather
+		self.frame = frame
+		if self.rain or self.snow is not None:
+			while self.rslo.count():
+				child = self.rslo.takeAt(0)
+				if child.widget():
+					child.widget().deleteLater()
+			self.rain = None
+			self.snow = None
+		if self.temp_freezing is not None:
+			self.temp_freezing.deleteLater()
+			self.temp_freezing = None
+		self.title.setText(weather.location)
+		self.temp.setText(f"{weather.temp} °C")
+		self.weather.setText(weather.weather)
+		self.weather_detailed.setText(weather.weather_detailed)
+		pixmap = QPixmap(f"images/{weather.weather_icon}.png")
+		self.weather_icon.setPixmap(pixmap)
+		self.tempf.setText(f"Føles som {weather.temp_feels_like} °C")
+		self.min_temp_num.setText(f"{weather.temp_min} °C")
+		self.max_temp_num.setText(f"{weather.temp_max} °C")
+		self.humidity.setText(f"{round(weather.humidity)}% luftfugtighed")
+		self.wind.setText(f"{weather.wind_speed} meter/s vind ༄")
+		self.wind_deg.setText(f"fra {round(weather.wind_deg)}° graders vinkel")
+		sunrise = weather.getSunriseTime()
+		sunset = weather.getSunsetTime()
+		self.sunrise_label.setText(f"Solopgang\n{sunrise[0].strftime("%H:%M")}\n({sunrise[1].strftime("%H:%M")} lokal tid)")
+		self.sunset_label.setText(f"Solopgang\n{sunset[0].strftime("%H:%M")}\n({sunset[1].strftime("%H:%M")} lokal tid)")
+		if weather.temp_feels_like <= 1:
+			self.temp_freezing = QLabel()
+			pixmap = QPixmap(f"images/13n.png")
+			self.temp_freezing.setPixmap(pixmap)
+			self.tlo.addWidget(self.temp_freezing, 0, 2)
+			self.tlo.setAlignment(self.temp_freezing, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+		if weather.rain is not None:
+			self.rain = Label(f"{weather.rain['1h']}mm regn i timen")
+			self.rain.setProperty("class", "header_text")
+			self.rain.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+			self.rslo.addWidget(self.rain)
+		if weather.snow is not None:
+			self.snow = Label(f"{weather.snow['1h']}mm sne i timen")
+			self.snow.setProperty("class", "header_text")
+			self.snow.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+			self.rslo.addWidget(self.snow)
+
+
+class Label(QLabel):
+
+	def __init__(self, text=""):
+		super(Label, self).__init__(text)
+		drop_shadow = QGraphicsDropShadowEffect()
+		drop_shadow.setBlurRadius(1)
+		drop_shadow.setOffset(3, 3)
+		self.setGraphicsEffect(drop_shadow)
 
 class LocationFrame(QFrame):
 
@@ -302,18 +543,18 @@ class LocationFrame(QFrame):
 		layout.setContentsMargins(30, 30, 30, 0)
 		layout.setSpacing(0)
 
-		self.location_label = QLabel(weather.location)
+		self.location_label = Label(weather.location)
 		self.location_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
-		self.temp_label = QLabel(f"{round(weather.temp)} °C")
+		self.temp_label = Label(f"{round(weather.temp)} °C")
 		self.temp_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
-		self.weather_label = QLabel(f"{weather.weather}")
+		self.weather_label = Label(f"{weather.weather}")
 		self.weather_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
 		self.weather_label.setContentsMargins(0, 0, 10, 0)
 		self.weather_icon = QLabel()
 		pixmap = QPixmap(f"images/{weather.weather_icon}.png")
 		self.weather_icon.setPixmap(pixmap)
 		self.weather_icon.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
-		self.wind_label = QLabel(f"{weather.wind_speed:.1f} m/s ༄")
+		self.wind_label = Label(f"{weather.wind_speed:.1f} m/s ༄")
 		self.wind_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
 		self.vertical_spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 		self.horizontal_spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
@@ -323,8 +564,6 @@ class LocationFrame(QFrame):
 		self.weather_label.setProperty("class", "smallfont")
 		self.weather_icon.setProperty("class", "smallfont")
 		self.wind_label.setProperty("class", "smallfont")
-
-		addShadows(self.location_label, self.temp_label, self.weather_label, self.wind_label)
 
 		layout.addWidget(self.location_label, 0, 0, 1, 2)
 		layout.addWidget(self.temp_label, 0, 3)
@@ -345,8 +584,8 @@ class LocationFrame(QFrame):
 
 	def mousePressEvent(self, e: QMouseEvent):
 		self.parent.scroll_area.hide()
-		self.parent.location_detailed_frame.show()
-		self.parent.location_detailed_frame.setup(self.weather)
+		self.parent.location_detailed_widget.setup(self.weather, self)
+		self.parent.location_detailed_widget.show()
 
 
 if __name__ == "__main__":
