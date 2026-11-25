@@ -1,6 +1,7 @@
-from dateutil.tz import UTC
+from PyQt6.QtGui import QPixmap
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, String, Integer
+import time
 import datetime
 import httpx
 
@@ -54,6 +55,30 @@ class Weather:
 	weather = {}
 
 	def __init__(self, location):
+		self.local_location = location
+		self.location = None
+		self.weather = None
+		self.weather_detailed = None
+		self.weather_icon = None
+		self.temp = None
+		self.temp_feels_like = None
+		self.temp_min = None
+		self.temp_max = None
+		self.humidity = None
+		self.wind_speed = None
+		self.wind_deg = None
+		self.country = None
+		self.sunrise = None
+		self.sunset = None
+		self.timezone = None
+		self.rain = None
+		self.snow = None
+		self.stop_updating = False
+		self.updateWeather(location)
+		self.label_ref = {}
+		Weather.weather[location] = self
+
+	def updateWeather(self, location):
 		weather = get_weather(location, KEY)
 		self.location = weather["location"]
 		self.weather = weather["weather"]
@@ -72,13 +97,43 @@ class Weather:
 		self.timezone = weather["timezone"]
 		self.rain = weather["rain"]
 		self.snow = weather["snow"]
-		Weather.weather[location] = self
+
+	def updateLabels(self):
+		if len(self.label_ref) < 1:
+			return
+		for label, options in self.label_ref.items():
+			type_ = options.get("type", None)
+			value = None
+			if type_ != "function":
+				value = self.__dict__[options["target"]]
+			decimal_ = options.get("decimal", None)
+			round_ = options.get("round", None)
+			if decimal_ is not None:
+				value = f"{value:.{decimal_}f}"
+			if round_ is not None:
+				value = round(value)
+			has_format = options.get("format", None)
+			format_ = str(options.get("format", value))
+			if type_ == "function":
+				values = options["target"]()
+				if has_format is not None:
+					for i in range(len(values)):
+						format_ = format_.replace(f"%value-{i + 1}%", str(values[i]))
+				label.setText(format_)
+				continue
+			elif type_ == "icon":
+				pixmap = QPixmap(f"images/{value}.png")
+				label.setPixmap(pixmap)
+				continue
+			if has_format is not None:
+				format_ = format_.replace("%value%", str(value))
+			label.setText(format_)
 
 	def getSunriseTime(self):
-		return datetime.datetime.fromtimestamp(self.sunrise, datetime.UTC) + datetime.timedelta(seconds=self.timezone), datetime.datetime.fromtimestamp(self.sunrise)
+		return (datetime.datetime.fromtimestamp(self.sunrise, datetime.UTC) + datetime.timedelta(seconds=self.timezone)).strftime("%H:%M"), datetime.datetime.fromtimestamp(self.sunrise).strftime("%H:%M")
 
 	def getSunsetTime(self):
-		return datetime.datetime.fromtimestamp(self.sunset, datetime.UTC) + datetime.timedelta(seconds=self.timezone), datetime.datetime.fromtimestamp(self.sunset)
+		return (datetime.datetime.fromtimestamp(self.sunset, datetime.UTC) + datetime.timedelta(seconds=self.timezone)).strftime("%H:%M"), datetime.datetime.fromtimestamp(self.sunset).strftime("%H:%M")
 
 	def __repr__(self):
 		return (f"{self.location=} {self.weather=} {self.weather_detailed=} {self.weather_icon=}"
@@ -88,6 +143,16 @@ class Weather:
 		        f"{self.sunset=} {self.timezone=} {self.rain=} {self.snow=}")
 
 	@staticmethod
+	def startUpdating():
+		while True:
+			for upd in Weather.weather.values():
+				if upd.stop_updating:
+					continue
+				upd.updateWeather(upd.local_location)
+				upd.updateLabels()
+			time.sleep(60)
+
+	@staticmethod
 	def get_weather(location) -> Weather:
 		return Weather.weather[location]
 
@@ -95,8 +160,6 @@ class Weather:
 if __name__ == "__main__":
 	try:
 		weather1 = Weather("irkutsk")
-		print(weather1.rain)
-		print(weather1.snow)
 
 	except LocationNotFoundException:
 		print("Fejl")

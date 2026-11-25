@@ -3,6 +3,7 @@ from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
 from PyQt6 import uic
 from weather_data import Weather, Location, LocationNotFoundException
+import threading
 import weather_database
 
 main_stylesheet = """
@@ -70,9 +71,12 @@ class WeatherApp(QApplication):
 
 	def __init__(self):
 		super(WeatherApp, self).__init__([])
+		thread = threading.Thread(target=Weather.startUpdating, daemon=True)
+		thread.start()
+
 		self.main_win = MainWindow()
 
-		for location_from_database in weather_database.get_all_records(Location):
+		for location_from_database in weather_database.get_all_records():
 			self.addLocationFrame(location_from_database.location)
 
 		self.main_win.show()
@@ -91,7 +95,7 @@ class MainWindow(QMainWindow):
 		self.scroll_area.setStyleSheet(main_stylesheet)
 		self.add_location_btn.setStyleSheet(add_location_btn_stylesheet)
 		self.add_location_btn.clicked.connect(self.add_location_press)
-		self.location_detailed_widget = LocationDetailedFrame(self)
+		self.location_detailed_widget = LocationDetailedFrame()
 		self.layout.layout().addWidget(self.location_detailed_widget, 0, 1)
 
 		self.location_detailed_widget.hide()
@@ -156,14 +160,15 @@ class MainWindow(QMainWindow):
 		self.fullScreen = True
 
 	def addLocation(self):
-		if len(self.text_ed.toPlainText()) < 1:
+		trimmed = self.text_ed.toPlainText().strip().lower()
+		if len(trimmed) < 1:
 			return
-		if (weather_database.get_record(self.text_ed.toPlainText().lower())) is not None:
+		if (weather_database.get_record(trimmed)) is not None:
 			self.failed_label.setText("Lokation allerede tilføjet")
 			self.failed_label.show()
 			return
 		try:
-			weather = Weather(self.text_ed.toPlainText())
+			weather = Weather(trimmed)
 			weather_database.insert_data(Location(location=weather.location.lower()))
 			self.scroll_area_content.layout().insertWidget(0, LocationFrame(self, weather))
 			self.text_ed.setPlainText("")
@@ -258,11 +263,9 @@ location_detailed_frame_stylesheet = """
 
 class LocationDetailedFrame(QScrollArea):
 
-	def __init__(self, parent: MainWindow):
+	def __init__(self):
 		super(LocationDetailedFrame, self).__init__()
-		self.weather_obj: Weather = None
 		self.frame: LocationFrame = None
-		self.parent = parent
 		self.setMaximumWidth(800)
 		self.setProperty("class", "content_frame")
 		self.setStyleSheet(location_detailed_frame_stylesheet)
@@ -300,8 +303,18 @@ class LocationDetailedFrame(QScrollArea):
 		delLOSpace(self.rslo)
 		self.rs_widget.setLayout(self.rslo)
 
-		self.rain: QLabel = None
-		self.snow: QLabel = None
+		self.rain = Label("---")
+		self.rain.setProperty("class", "header_text")
+		self.rain.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+		self.rslo.addWidget(self.rain)
+
+		self.snow = Label("---")
+		self.snow.setProperty("class", "header_text")
+		self.snow.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+		self.rslo.addWidget(self.snow)
+
+		self.rain.hide()
+		self.snow.hide()
 
 		# --------- Weather widget ---------
 
@@ -333,45 +346,64 @@ class LocationDetailedFrame(QScrollArea):
 		self.temp_widget = QWidget()
 		self.lo.addWidget(self.temp_widget, 3, 2)
 		self.lo.addItem(horizontal_spacer, 3, 1)
-		self.tlo = QGridLayout()
-		delLOSpace(self.tlo)
+		self.tlo = QVBoxLayout()
 		self.tlo.setContentsMargins(0, 30, 0, 0)
+		self.tlo.setSpacing(10)
 		self.temp_widget.setLayout(self.tlo)
+
+		self.htlo1 = QHBoxLayout()
+		self.htlo2 = QHBoxLayout()
+		self.htlo3 = QHBoxLayout()
+		delLOSpace(self.htlo1)
+		delLOSpace(self.htlo2)
+		self.htlo2.setSpacing(20)
+		delLOSpace(self.htlo3)
+		self.htlo3.setSpacing(20)
+		self.temp_widget1 = QWidget()
+		self.temp_widget1.setLayout(self.htlo1)
+		self.temp_widget2 = QWidget()
+		self.temp_widget2.setLayout(self.htlo2)
+		self.temp_widget3 = QWidget()
+		self.temp_widget3.setLayout(self.htlo3)
+		self.tlo.addWidget(self.temp_widget1)
+		self.tlo.addWidget(self.temp_widget2)
+		self.tlo.addWidget(self.temp_widget3)
 
 		self.tempf = Label("---")
 		self.tempf.setProperty("class", "small_text1")
 		self.tempf.setContentsMargins(0, 0, 10, 0)
-		self.tlo.addWidget(self.tempf, 0, 1)
-		self.tlo.setAlignment(self.tempf, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+		self.htlo1.addWidget(self.tempf)
+		self.htlo1.setAlignment(self.tempf, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
-		self.temp_freezing: QLabel = None
+		self.temp_freezing = QLabel()
+		pixmap = QPixmap(f"images/13n.png")
+		self.temp_freezing.setPixmap(pixmap)
+		self.htlo1.addWidget(self.temp_freezing)
+		self.htlo1.setAlignment(self.temp_freezing, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
 		self.min_temp = Label("Min")
 		self.min_temp.setProperty("class", "small_text1")
 		self.min_temp.setContentsMargins(40, 0, 0, 0)
-		self.tlo.addWidget(self.min_temp, 1, 1, 1, 2)
-		self.tlo.setAlignment(self.min_temp, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+		self.htlo2.addWidget(self.min_temp)
+		self.htlo2.setAlignment(self.min_temp, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
 		self.max_temp = Label("Max")
 		self.max_temp.setProperty("class", "small_text1")
 		self.max_temp.setContentsMargins(0, 0, 40, 0)
-		self.tlo.addWidget(self.max_temp, 1, 1, 1, 2)
-		self.tlo.setAlignment(self.max_temp, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+		self.htlo2.addWidget(self.max_temp)
+		self.htlo2.setAlignment(self.max_temp, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
 		self.min_temp_num = Label("---")
 		self.min_temp_num.setProperty("class", "small_text2")
 		self.min_temp_num.setContentsMargins(40, 0, 0, 0)
-		self.tlo.addWidget(self.min_temp_num, 2, 1, 1, 2)
-		self.tlo.setAlignment(self.min_temp_num, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+		self.htlo3.addWidget(self.min_temp_num)
+		self.htlo3.setAlignment(self.min_temp_num, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
 		self.max_temp_num = Label("---")
 		self.max_temp_num.setProperty("class", "small_text2")
 		self.max_temp_num.setContentsMargins(0, 0, 40, 0)
-		self.tlo.addWidget(self.max_temp_num, 2, 1, 1, 2)
-		self.tlo.setAlignment(self.max_temp_num, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-
-		self.tlo.addItem(horizontal_spacer, 0, 0, -1, 1)
-		self.tlo.addItem(horizontal_spacer, 0, 3, -1, 1)
+		self.htlo3.addWidget(self.max_temp_num)
+		self.htlo3.setAlignment(self.max_temp_num, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
 		# --------- Wind widget ---------
 
@@ -463,60 +495,68 @@ class LocationDetailedFrame(QScrollArea):
 
 	def delete(self):
 		self.back()
-		weather_database.delete_record(self.weather_obj.location.lower())
-		for children in self.parent.scroll_area_content.children():
-			if children is self.frame:
-				children.setParent(None)
+		weather_database.delete_record(self.frame.weather.location.lower())
+		self.frame.weather.stop_updating = True
+		self.frame.hide()
 
 	def back(self):
 		self.hide()
-		self.parent.scroll_area.show()
+		self.frame.parent.scroll_area.show()
+
+		self.frame.weather.label_ref = {
+			self.frame.location_label: {"target": "location"},
+			self.frame.temp_label: {"target": "temp", "format": "%value% °C", "round": True},
+			self.frame.weather_label: {"target": "weather"},
+			self.frame.weather_icon: {"target": "weather_icon", "type": "icon"},
+			self.frame.wind_label: {"target": "wind_speed", "format": "%value% m/s ༄", "decimal": 1}
+		}
 
 	def setup(self, weather: Weather, frame: LocationFrame):
-		self.weather_obj = weather
 		self.frame = frame
-		if self.rain or self.snow is not None:
-			while self.rslo.count():
-				child = self.rslo.takeAt(0)
-				if child.widget():
-					child.widget().deleteLater()
-			self.rain = None
-			self.snow = None
-		if self.temp_freezing is not None:
-			self.temp_freezing.deleteLater()
-			self.temp_freezing = None
+		self.rain.hide()
+		self.snow.hide()
+		self.temp_freezing.hide()
 		self.title.setText(weather.location)
 		self.temp.setText(f"{weather.temp} °C")
+		self.tempf.setText(f"Føles som {weather.temp_feels_like} °C")
+		self.min_temp_num.setText(f"{weather.temp_min} °C")
+		self.max_temp_num.setText(f"{weather.temp_max} °C")
 		self.weather.setText(weather.weather)
 		self.weather_detailed.setText(weather.weather_detailed)
 		pixmap = QPixmap(f"images/{weather.weather_icon}.png")
 		self.weather_icon.setPixmap(pixmap)
-		self.tempf.setText(f"Føles som {weather.temp_feels_like} °C")
-		self.min_temp_num.setText(f"{weather.temp_min} °C")
-		self.max_temp_num.setText(f"{weather.temp_max} °C")
 		self.humidity.setText(f"{round(weather.humidity)}% luftfugtighed")
 		self.wind.setText(f"{weather.wind_speed} meter/s vind ༄")
 		self.wind_deg.setText(f"fra {round(weather.wind_deg)}° graders vinkel")
 		sunrise = weather.getSunriseTime()
 		sunset = weather.getSunsetTime()
-		self.sunrise_label.setText(f"Solopgang\n{sunrise[0].strftime("%H:%M")}\n({sunrise[1].strftime("%H:%M")} lokal tid)")
-		self.sunset_label.setText(f"Solopgang\n{sunset[0].strftime("%H:%M")}\n({sunset[1].strftime("%H:%M")} lokal tid)")
+		self.sunrise_label.setText(f"Solopgang\n{sunrise[0]}\n({sunrise[1]} lokal tid)")
+		self.sunset_label.setText(f"Solnedgang\n{sunset[0]}\n({sunset[1]} lokal tid)")
 		if weather.temp_feels_like <= 1:
-			self.temp_freezing = QLabel()
-			pixmap = QPixmap(f"images/13n.png")
-			self.temp_freezing.setPixmap(pixmap)
-			self.tlo.addWidget(self.temp_freezing, 0, 2)
-			self.tlo.setAlignment(self.temp_freezing, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+			self.temp_freezing.show()
 		if weather.rain is not None:
-			self.rain = Label(f"{weather.rain['1h']}mm regn i timen")
-			self.rain.setProperty("class", "header_text")
-			self.rain.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
-			self.rslo.addWidget(self.rain)
+			self.rain.show()
+			self.rain.setText(f"{weather.rain}mm regn i timen")
 		if weather.snow is not None:
-			self.snow = Label(f"{weather.snow['1h']}mm sne i timen")
-			self.snow.setProperty("class", "header_text")
-			self.snow.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
-			self.rslo.addWidget(self.snow)
+			self.snow.show()
+			self.snow.setText(f"{weather.snow}mm sne i timen")
+		weather.label_ref = {
+			self.title: {"target": "location"},
+			self.temp: {"target": "temp", "format": "%value% °C"},
+			self.tempf: {"target": "temp_feels_like", "format": "Føles som %value% °C"},
+			self.min_temp_num: {"target": "temp_min", "format": "%value% °C"},
+			self.max_temp_num: {"target": "temp_max", "format": "%value% °C"},
+			self.weather: {"target": "weather"},
+			self.weather_detailed: {"target": "weather_detailed"},
+			self.weather_icon: {"target": "weather_icon", "type": "icon"},
+			self.humidity: {"target": "humidity", "format": "%value%% luftfugtighed", "round": True},
+			self.wind: {"target": "wind_speed", "format": "%value% meter/s vind ༄"},
+			self.wind_deg: {"target": "wind_deg", "format": "fra %value%° graders vinkel", "round": True},
+			self.sunrise_label: {"target": weather.getSunriseTime, "type": "function", "format": "Solopgang\n%value-1%\n(%value-2% lokal tid)"},
+			self.sunset_label: {"target": weather.getSunsetTime, "type": "function", "format": "Solnedgang\n%value-1%\n(%value-2% lokal tid)"},
+			self.rain: {"target": "rain", "format": "%value%mm regn i timen"},
+			self.snow: {"target": "snow", "format": "%value%mm sne i timen"}
+		}
 
 
 class Label(QLabel):
@@ -579,6 +619,14 @@ class LocationFrame(QFrame):
 		layout.setAlignment(self.weather_label, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 		layout.setAlignment(self.weather_icon, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 		layout.setAlignment(self.wind_label, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+
+		weather.label_ref = {
+			self.location_label: {"target": "location"},
+			self.temp_label: {"target": "temp", "format": "%value% °C", "round": True},
+			self.weather_label: {"target": "weather"},
+			self.weather_icon: {"target": "weather_icon", "type": "icon"},
+			self.wind_label: {"target": "wind_speed", "format": "%value% m/s ༄", "decimal": 1}
+		}
 
 		self.setLayout(layout)
 

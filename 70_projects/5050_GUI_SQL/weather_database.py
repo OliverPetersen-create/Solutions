@@ -20,9 +20,9 @@ def delete_record(location):
 		session.execute(delete(Location).where(Location.location == location))
 		session.commit()
 
-def get_all_records(table):
+def get_all_records():
 	with Session(engine) as session:
-		records = session.scalars(select(table)).all()
+		records = session.scalars(select(Location)).all()
 	return records
 
 def insert_data(data):
@@ -44,5 +44,5 @@ if __name__ == "__main__":
 		print(get_record("høje taastrup"))
 		print(Weather.get_weather("høje taastrup"))
 else:
-	if get_record_id(1) is None:
+	if len(get_all_records()) < 1:
 		insert_data(Location(location="høje taastrup"))
