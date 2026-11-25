@@ -95,8 +95,10 @@ class Weather:
 		self.sunrise = weather["sunrise"]
 		self.sunset = weather["sunset"]
 		self.timezone = weather["timezone"]
-		self.rain = weather["rain"]
-		self.snow = weather["snow"]
+		if weather.get("rain", None) is not None:
+			self.rain = weather["rain"]["1h"]
+		if weather.get("snow", None) is not None:
+			self.snow = weather["snow"]["1h"]
 
 	def updateLabels(self):
 		if len(self.label_ref) < 1:
@@ -150,7 +152,7 @@ class Weather:
 					continue
 				upd.updateWeather(upd.local_location)
 				upd.updateLabels()
-			time.sleep(60)
+			time.sleep(5)
 
 	@staticmethod
 	def get_weather(location) -> Weather:
