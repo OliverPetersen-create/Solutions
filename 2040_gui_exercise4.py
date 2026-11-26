@@ -6,7 +6,7 @@ Kopier denne fil til din egen løsningsmappe. Skriv din løsning ind i kopien.
 
 --------
 
-Bruge det, du har lært i GUI-eksempelfilerne, og byg den GUI, der er afbildet i images/gui_2040.png
+Bruge det, du har lært i GUI-eksempelfilerne, og byg den GUI, der er afbildet i assets/gui_2040.png
 
 Genbrug din kode fra "GUI step 3".
 

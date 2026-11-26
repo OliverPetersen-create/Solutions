@@ -274,7 +274,7 @@ class LocationDetailedFrame(QScrollArea):
 		self.inner.setProperty("class", "transparent")
 		self.lo = QGridLayout()
 		self.inner.setLayout(self.lo)
-		self.lo.setContentsMargins(20, 0, 20, 0)
+		self.lo.setContentsMargins(20, 0, 20, 20)
 		self.lo.setSpacing(0)
 		self.setWidget(self.inner)
 
@@ -527,7 +527,8 @@ class LocationDetailedFrame(QScrollArea):
 		self.weather_icon.setPixmap(pixmap)
 		self.humidity.setText(f"{round(weather.humidity)}% luftfugtighed")
 		self.wind.setText(f"{weather.wind_speed} meter/s vind ༄")
-		self.wind_deg.setText(f"fra {round(weather.wind_deg)}° graders vinkel")
+		wind_direction = weather.getWindDirection()
+		self.wind_deg.setText(f"{wind_direction[0]} {wind_direction[1]} ({wind_direction[2]}°)")
 		sunrise = weather.getSunriseTime()
 		sunset = weather.getSunsetTime()
 		self.sunrise_label.setText(f"Solopgang\n{sunrise[0]}\n({sunrise[1]} lokal tid)")
@@ -551,11 +552,11 @@ class LocationDetailedFrame(QScrollArea):
 			self.weather_icon: {"target": "weather_icon", "type": "icon"},
 			self.humidity: {"target": "humidity", "format": "%value%% luftfugtighed", "round": True},
 			self.wind: {"target": "wind_speed", "format": "%value% meter/s vind ༄"},
-			self.wind_deg: {"target": "wind_deg", "format": "fra %value%° graders vinkel", "round": True},
+			self.wind_deg: {"target": weather.getWindDirection, "type": "function", "format": "%value-1% %value-2% (%value-3%°)"},
 			self.sunrise_label: {"target": weather.getSunriseTime, "type": "function", "format": "Solopgang\n%value-1%\n(%value-2% lokal tid)"},
 			self.sunset_label: {"target": weather.getSunsetTime, "type": "function", "format": "Solnedgang\n%value-1%\n(%value-2% lokal tid)"},
-			self.rain: {"target": "rain", "format": "%value%mm regn i timen"},
-			self.snow: {"target": "snow", "format": "%value%mm sne i timen"}
+			self.rain: {"target": "rain", "format": "%value%mm regn i timen", "dynamicVisibility": True},
+			self.snow: {"target": "snow", "format": "%value%mm sne i timen", "dynamicVisibility": True}
 		}
 
 
@@ -579,25 +580,34 @@ class LocationFrame(QFrame):
 		self.setMaximumHeight(200)
 		self.setProperty("class", "locationframe")
 		self.setStyleSheet(location_frame_stylesheet)
-		layout = QGridLayout()
-		layout.setContentsMargins(30, 30, 30, 0)
-		layout.setSpacing(0)
+		self.layout = QVBoxLayout()
+		delLOSpace(self.layout)
+		self.layout.setContentsMargins(25, 20, 25, 0)
+		self.layout.setSpacing(0)
+
+		self.widget_1 = QWidget()
+		self.widget_2 = QWidget()
+		self.lo_1 = QHBoxLayout()
+		self.lo_2 = QHBoxLayout()
+		self.widget_1.setLayout(self.lo_1)
+		self.widget_2.setLayout(self.lo_2)
+		delLOSpace(self.lo_1)
+		delLOSpace(self.lo_2)
 
 		self.location_label = Label(weather.location)
 		self.location_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+		self.location_label.setContentsMargins(0, 0, 15, 0)
 		self.temp_label = Label(f"{round(weather.temp)} °C")
 		self.temp_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
 		self.weather_label = Label(f"{weather.weather}")
 		self.weather_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
-		self.weather_label.setContentsMargins(0, 0, 10, 0)
+		self.weather_label.setContentsMargins(0, 0, 15, 0)
 		self.weather_icon = QLabel()
 		pixmap = QPixmap(f"images/{weather.weather_icon}.png")
 		self.weather_icon.setPixmap(pixmap)
 		self.weather_icon.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
 		self.wind_label = Label(f"{weather.wind_speed:.1f} m/s ༄")
 		self.wind_label.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
-		self.vertical_spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-		self.horizontal_spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
 		self.location_label.setProperty("class", "bigfont")
 		self.temp_label.setProperty("class", "bigfont")
@@ -605,20 +615,22 @@ class LocationFrame(QFrame):
 		self.weather_icon.setProperty("class", "smallfont")
 		self.wind_label.setProperty("class", "smallfont")
 
-		layout.addWidget(self.location_label, 0, 0, 1, 2)
-		layout.addWidget(self.temp_label, 0, 3)
-		layout.addWidget(self.weather_label, 1, 0)
-		layout.addWidget(self.weather_icon, 1, 1)
-		layout.addItem(self.horizontal_spacer, 1, 2)
-		layout.addWidget(self.wind_label, 1, 3)
-		layout.addItem(self.vertical_spacer, 2, 0)
-		layout.addItem(self.vertical_spacer, 2, 3)
+		self.lo_1.addWidget(self.location_label)
+		self.lo_1.addWidget(self.temp_label)
+		self.lo_2.addWidget(self.weather_label)
+		self.lo_2.addWidget(self.weather_icon)
+		self.lo_2.addStretch()
+		self.lo_2.addWidget(self.wind_label)
 
-		layout.setAlignment(self.location_label, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-		layout.setAlignment(self.temp_label, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
-		layout.setAlignment(self.weather_label, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-		layout.setAlignment(self.weather_icon, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-		layout.setAlignment(self.wind_label, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+		self.lo_1.setAlignment(self.location_label, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+		self.lo_1.setAlignment(self.temp_label, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
+		self.lo_2.setAlignment(self.weather_label, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+		self.lo_2.setAlignment(self.weather_icon, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+		self.lo_2.setAlignment(self.wind_label, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+
+		self.layout.addWidget(self.widget_1)
+		self.layout.addWidget(self.widget_2)
+		self.layout.addStretch()
 
 		weather.label_ref = {
 			self.location_label: {"target": "location"},
@@ -628,7 +640,7 @@ class LocationFrame(QFrame):
 			self.wind_label: {"target": "wind_speed", "format": "%value% m/s ༄", "decimal": 1}
 		}
 
-		self.setLayout(layout)
+		self.setLayout(self.layout)
 
 	def mousePressEvent(self, e: QMouseEvent):
 		self.parent.scroll_area.hide()
